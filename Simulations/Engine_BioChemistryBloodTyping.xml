@@ -6,8 +6,8 @@
 
   <Player Id="Player" FirstName="John" LastName="Doe" Email="" Xp="25" DefaultQuizMaxPoint="10" DefaultQuizMinPoint="2" DefaultQuizPointReduction="2" LabPadItemId="LabPad" />
 
-  
 
+  <!-- we really need this update -->
   <!-- List all asset bundles that need to be loaded -->
   <Assets>
     <Asset AssetPath="Common/Hands" />
@@ -66,7 +66,7 @@
       <Label Name="ExtendedTooltip" Depth="0" Align="Top" ImageSource="Tooltip" TileMode="Sliced" Position="0,10" Size="270,65" Color="255,255,127,255" Text="{Binding ExtendedTooltip}" TextSize="14" ComparisonVisibility="{Binding ExtendedTooltip, Converter=Invert}" ComparisonValue="" AutoResizeWithLabel="true" AutoResizeOffset="50,35" />
     </GUITooltip3D>
 
-    
+
   </GUI>
 
   <!-- Used to list all items to be created during gameplay -->
@@ -82,7 +82,7 @@
             <StartConversation Target="Conversation_LabPad" ConversationId="LabAstPCScreen1" />
           </Actions>
         </EventTrigger>
-      
+
         <EventTrigger Event="Click">
           <Conditions>
             <TaskCompleted Target="Task_EgelAnimationFinished" />
@@ -106,7 +106,7 @@
             <RunScript ScriptId="CheckBloodResult" />
           </Actions>
         </EventTrigger>
-        
+
         <EventTrigger Event="Click">
           <Conditions>
             <TaskCompleted Target="Task_RevealBloodResult" />
@@ -162,7 +162,7 @@
             <PlaySound SoundId="Trash"/>
           </Actions>
         </EventTrigger>-->
-        
+
         <EventTrigger Event="Drop">
           <Conditions>
             <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="PlaceholderBehaviour" Value="Trash" />
@@ -222,7 +222,7 @@
             <CancelEvent />
           </Actions>
         </EventTrigger>
-        
+
       </Triggers>
 
       <StateGroups>
@@ -351,10 +351,10 @@
     </Container>
 
     <Container Id="PCRTube" Title="PCRTube" GameObjectId="PCRTube" MaxAmount="100" Tooltip="PCR rør">
-      
+
     </Container>
 
-    
+
     <Container Id="TestTubeWithDNASample" Title="TestTube" GameObjectId="TestTube" MaxAmount="1000" ItemId="TestTube" AcceptContentsTransfer="false">
       <Triggers>
         <EventTrigger Event="PreviewDrop">
@@ -450,7 +450,7 @@
 
 
 
-    
+
 
     <!--<Quiz Id="Quiz_NoPipetteOnContainers"
       NoScore="true"
@@ -498,7 +498,7 @@
     <Conversation Id="AstStartEgel" Sentence="Click on &quot;START&quot; to begin the electrophoresis." />
     <Conversation Id="AstTubeReady" Sentence="Splendid! Place the PCR tube in the PCR machine to begin the reaction." />
 
-    
+
 
     <!--/WORKBENCH 1-->
 
@@ -514,7 +514,7 @@
     <Conversation Id="Assist010" Sentence="Go to Workbench 4." />
     <Conversation Id="Assist011" Sentence="Choose the solution, you wish to add." />
 
-    
+
     <Conversation Id="Mission4a" Sentence="Welcome to table 4. Here you will learn more about blood type determinations. There is a patient at the local hospital, who needs our help. \n\nLet us go to the hospital and visit him!" ReadMoreUrl="http://learn.labster.com/index.php/Blodtype">
       <Triggers>
         <Trigger>
@@ -624,7 +624,7 @@
               <Actions>
                 <CompleteTask Target="Task_CheckBloodResult" />
                 <CompleteTask Target="Task_BloodTypeQuizStarted" />
-                <Wait Duration="0" />                
+                <Wait Duration="0" />
                 <StartQuizBlock Target="QuizBlock_BloodTyping7_1">
                   <Conditions>
                     <DataCondition Target="BloodTypeResult" Property="Amount" Value="1" />
@@ -935,7 +935,7 @@
       </Triggers>
     </Conversation>
     <Conversation Id="Finished" Sentence="Good work! You have completed the Biochemistry laboratory and learned about genotype determinations for sickle cell anemia, measured blood sugar after digestion of different types of food, diffusion and osmosis and performed a blood type determination test. \n\nIt would be a big help, if you would spend to minutes filling out a user survey. Your comments are very valuable to us. \n\nThank you in advance.">
-      
+
     </Conversation>
     <Conversation Id="BackToTheLab" Sentence="Go back to the laboratory by clicling on the laboratory icon.">
       <Triggers>
@@ -951,16 +951,16 @@
   <QuizBlocks>
     <QuizBlock Id="QuizBlock_NoPipetteOnContainers" GUIDialogueId="Conversation_LabPad">
     </QuizBlock>
-  
+
     <QuizBlock Id="QuizBlock_UsePipetteWithNoTip" GUIDialogueId="Conversation_LabPad">
     </QuizBlock>
-      
+
     <QuizBlock Id="QuizBlock_BloodTyping1" GUIDialogueId="Conversation_LabPad">
       <CompletedActions>
         <StartConversation Target="Conversation_LabPad" ConversationId="Mission4d" />
       </CompletedActions>
     </QuizBlock>
-  
+
     <QuizBlock Id="QuizBlock_BloodTyping7_1" GUIDialogueId="Conversation_LabPad">
       <CompletedActions>
         <Wait Duration="0.5" />
@@ -972,7 +972,7 @@
         <EndScript ScriptId="CheckBackButtonForBloodQuiz" />
       </CompletedActions>
     </QuizBlock>
-  
+
     <QuizBlock Id="QuizBlock_BloodTyping7_2" GUIDialogueId="Conversation_LabPad">
       <CompletedActions>
         <Wait Duration="0.5" />
@@ -984,7 +984,7 @@
         <EndScript ScriptId="CheckBackButtonForBloodQuiz" />
       </CompletedActions>
     </QuizBlock>
-  
+
     <QuizBlock Id="QuizBlock_BloodTyping7_3" GUIDialogueId="Conversation_LabPad">
       <CompletedActions>
         <Wait Duration="0.5" />
@@ -996,7 +996,7 @@
         <EndScript ScriptId="CheckBackButtonForBloodQuiz" />
       </CompletedActions>
     </QuizBlock>
-  
+
     <QuizBlock Id="QuizBlock_BloodTyping7_4" GUIDialogueId="Conversation_LabPad">
       <CompletedActions>
         <Wait Duration="0.5" />
@@ -1008,7 +1008,7 @@
         <EndScript ScriptId="CheckBackButtonForBloodQuiz" />
       </CompletedActions>
     </QuizBlock>
-  
+
     <QuizBlock Id="QuizBlock_BloodTyping7_5" GUIDialogueId="Conversation_LabPad">
       <CompletedActions>
         <Wait Duration="0.5" />
@@ -1020,7 +1020,7 @@
         <EndScript ScriptId="CheckBackButtonForBloodQuiz" />
       </CompletedActions>
     </QuizBlock>
-  
+
     <QuizBlock Id="QuizBlock_BloodTyping7_6" GUIDialogueId="Conversation_LabPad">
       <CompletedActions>
         <Wait Duration="0.5" />
@@ -1032,7 +1032,7 @@
         <EndScript ScriptId="CheckBackButtonForBloodQuiz" />
       </CompletedActions>
     </QuizBlock>
-  
+
     <QuizBlock Id="QuizBlock_BloodTyping7_7" GUIDialogueId="Conversation_LabPad">
       <CompletedActions>
         <Wait Duration="0.5" />
@@ -1044,7 +1044,7 @@
         <EndScript ScriptId="CheckBackButtonForBloodQuiz" />
       </CompletedActions>
     </QuizBlock>
-  
+
     <QuizBlock Id="QuizBlock_BloodTyping7_8" GUIDialogueId="Conversation_LabPad">
       <CompletedActions>
         <Wait Duration="0.5" />
@@ -1649,7 +1649,7 @@
           </Conditions>
           <Actions>
             <MoveTo Element="Microscope1Screen" />
-            
+
             <EndConversation Target="SubtitleConversation" />
             <ShowMedia Source="Labs/Introductory/Blood_cells" AllowSkip="false" />
             <Wait Notification="MediaAnimationStarted" />
@@ -1664,7 +1664,7 @@
           </Conditions>
           <Actions>
             <MoveTo Element="Microscope1Screen" />
-            
+
             <EndConversation Target="SubtitleConversation" />
             <ShowMedia Source="Labs/Introductory/Blood_cells" AllowSkip="false" />
             <Wait Notification="MediaAnimationStarted" />
@@ -1679,7 +1679,7 @@
           </Conditions>
           <Actions>
             <MoveTo Element="Microscope1Screen" />
-            
+
             <EndConversation Target="SubtitleConversation" />
             <ShowMedia Source="Labs/Introductory/Blood_cells" AllowSkip="false" />
             <Wait Notification="MediaAnimationStarted" />
@@ -1714,7 +1714,7 @@
             <Wait Notification="AnimationEnded" />
             <MoveTo Element="Workbench3_DiffusionOsmosis" />
             <EndConversation Target="SubtitleConversation" />
-            
+
             <CompleteTask Target="Task_WatchBloodCellsShrink" />
             <EndScript />
           </Actions>
@@ -1748,7 +1748,7 @@
             <Wait Notification="AnimationEnded" />
             <MoveTo Element="Workbench3_DiffusionOsmosis" />
             <EndConversation Target="SubtitleConversation" />
-            
+
             <CompleteTask Target="Task_WatchBloodCellsExpand" />
             <EndScript />
           </Actions>
@@ -1766,7 +1766,7 @@
             <Wait Notification="AnimationEnded" />
             <MoveTo Element="Workbench3_DiffusionOsmosis" />
             <EndConversation Target="SubtitleConversation" />
-            
+
             <CompleteTask Target="Task_WatchBloodCellsExplode" />
             <EndScript />
           </Actions>
@@ -2855,7 +2855,7 @@
           </Conditions>
           <Actions>
             <CompleteTask Target="Task_SelectCorrectAmountGlucose" />
-            
+
             <!-- debug -->
             <CompleteTask Target="Task_SelectCorrectAmountSucrose" />
             <CompleteTask Target="Task_SelectCorrectAmountWhitebread" />
@@ -2865,7 +2865,7 @@
             <CompleteTask Target="Task_SelectCorrectAmountCarrot" />
             <CompleteTask Target="Task_SelectCorrectAmountIcecream" />
             <!-- end of debug -->
-            
+
             <EndScript />
           </Actions>
           <FailActions>
@@ -3388,7 +3388,7 @@
     <Quest Id="Quests_Checklist" MustStartInOrder="false" IsAutoSave="false">
       <!-- Missions will appear on the checklist -->
       <Missions>
-        
+
         <Mission Id="MissionBloodTest" Title="Determine the patientÕs blood type" MustStartInOrder="false" IsAutoSave="false">
           <Tasks>
             <Task Id="Task_GetBackToTheLab" />
@@ -3415,7 +3415,7 @@
           <Conditions>
             <DataCondition Property="Visit" Value="1" />
           </Conditions>
-          <Actions>            
+          <Actions>
             <!--<CompleteTask Target="Task_Debug" />
             <Wait Duration="5" />
             <CompleteTask Target="Task_Debug" />-->
@@ -3429,14 +3429,14 @@
             <!--<ShowMedia Source="Labs/Introductory/Blood_cells2" AllowSkip="false" IsReplayable="false"/>-->
             <RunScript ScriptId="ClickBottleWithoutPipette" />
             <RunScript ScriptId="UsePipetteWithOutTip" />
-            
+
             <!--<RunScript ScriptId="CheckPCRProductFather" />
             <RunScript ScriptId="CheckPCRProductMother" />
             <RunScript ScriptId="CheckPCRProductChild" />
             <RunScript ScriptId="CheckPCRProductHealthy" />
             <RunScript ScriptId="CheckPCRProductCarrier" />
             <RunScript ScriptId="CheckPCRProductSick" />-->
-          
+
             <!-- debug -->
             <!--<Wait Duration="1" />
             <ShowMedia Source="Labs/Introductory/Blood_cells" />
@@ -3473,11 +3473,11 @@
           <Elements>
 
             <Element Id="Workbench1_PCR" Title="Workbench 1 - PCR and E-gel" GameObjectId="Table1" SourceId="Table1" Position="0.28,-1.219" Tooltip="Workbench 1 Ð PCR, E-gel" IsClickable="false" IsFocusable="false">
-              
+
             </Element>
             <Element Id="Table1b" GameObjectId="Table1" SourceId="Table1" Position="0.28,5.14" IsClickable="false" Rotation="180" />
             <Element Id="Workbench3_DiffusionOsmosis" Title="Workbench 3 - Diffusion Osmosis" GameObjectId="Table2" SourceId="Table2" Position="3.02,0.13" Tooltip="Workbench 3 Ð diffusion and osmosis" IsClickable="false" IsFocusable="false">
-              
+
             </Element>
             <Element Id="Workbench4_BloodType" Title="Workbench 4 - Blood Typing" GameObjectId="Table2b" SourceId="Table2" Position="3.02,3.80" Tooltip="Workbench 4 Ð blood type determination" IsFocusable="true" IsClickable="true">
               <Triggers>
@@ -3659,7 +3659,7 @@
               </Elements>
             </Element>
             <Element Id="Workbench2_BloodSugar" Title="Workbench 2 - Blood Sugar" GameObjectId="Workbench2_BloodSugar" SourceId="Table3" Position="1.27,2.45" Tooltip="Workbench 2 Ð Blood sugar" IsClickable="false" IsFocusable="false" Rotation="180">
-              
+
             </Element>
             <Element Id="Table4a" GameObjectId="Table4" SourceId="Table4" Position="0.006,1.96" Tooltip="Workbench 3" IsClickable="false" IsFocusable="true">
               <Elements>
@@ -3728,7 +3728,7 @@
                     <StartConversation Target="Conversation_LabPad" ConversationId="BackToTheLab" />
                   </Actions>
                 </EventTrigger>
-                
+
                 <EventTrigger Event="Click">
                   <Conditions>
                     <DataCondition Target="{Binding CurrentElement, RelativeSource=RightHand}" Property="ItemId" Value="EthanolBottle" />
@@ -3749,8 +3749,3 @@
     </Scene>
   </Scenes>
 </Engine>
-
-
-
-
-
