@@ -1,0 +1,2156 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Engine Id="Engine" GameSpeed="10" DebugMode="false" AntiAliasing="false" CursorHotSpotAsset="{Mouse}" TrackingCode="UA-25584366-6" Domain="www.labster.com">
+
+  <Time Id="EngineTime" TimeLapseMinutes="999999" TimeLapseMultiplier="1" />
+
+  <!-- Player node only used to define quiz points -->
+  <Player DefaultQuizMaxPoint="10" DefaultQuizMinPoint="2" DefaultQuizPointReduction="2" LabPadItemId="LabPad" />
+  
+  <Simulations>
+    <Simulation Id="PHColorSimulation" Interval="1">
+      <Conditions Match="Any">
+        <DataCondition Target="{Binding Contents.WaterWithWeakBase}" Property="Amount" Comparison="GreaterThan" Value="0" />
+        <!--<DataCondition Target="{Binding Contents.Water}" Property="Amount" Comparison="GreaterThan" Value="0" />-->
+      </Conditions>
+			<Actions>
+				<SetVariable Variable="CPH" Expression="{Binding EngineRoot.Lookup.PHMeterPH.Value}" />
+				
+				<SetVariable Variable="ColorRed" Expression="4.6-((CPH-1)*0.8)" />
+				<SetVariable Variable="ColorRedLimit" Expression="Max(Min(ColorRed,1),0)*0.5" /><!-- limit to 0->1 -->
+				<SetVariable Variable="ColorRedLimit" Expression="1" /><!-- limit to 0->1 -->
+				<SetVariable Variable="ColorGreen" Expression="5.6-((CPH-1)*0.8)" />
+				<SetVariable Variable="ColorGreenLimit" Expression="Max(Min(ColorGreen*0.5,1),0)*0.5" /><!-- limit to 0->1 -->
+				<SetVariable Variable="ColorBlue" Expression="((CPH-1)*0.8)-4.6" />
+				<SetVariable Variable="ColorBlueLimit" Expression="Max(Min(ColorBlue*0.5,1),0)*0.5" /><!-- limit to 0->1 -->
+
+				<SetVariable Variable="Color" Expression="ConvertToColor(Round([ColorRedLimit]*255,0),Round([ColorGreenLimit]*255,0),Round([ColorBlueLimit]*255,0),0.5)" />
+				<!--<SetVariable Variable="Color" Expression="ConvertToColor(255,255,0,0.75)" />-->
+
+				<Setter Target="{Binding Contents.BromothymolBlue}" Property="Color" Value="[Color]" />
+			</Actions>
+		</Simulation>
+
+		<Simulation Id="StrongAcidSimulation" Interval="1">
+			<Conditions>
+	    	<!--<DataCondition Target="{Binding Contents}" Property="Amount" Comparison="GreaterThan" Value="0" />-->
+        <DataCondition Target="{Binding Contents.Water}" Property="Amount" Comparison="GreaterThan" Value="0" />
+	    </Conditions>
+			<Actions>
+        <SetVariable Variable="temp" Expression="{Binding EngineRoot.Lookup.AcidOrBaseAmount.Value}" />
+			  <Setter Target="{Binding Contents.StrongAcid.Amount}" Value="[temp]" />
+        
+        <SetVariable Variable="conc_HCl" Expression="0.1" />
+        <SetVariable Variable="AcidAmount" Expression="{Binding Contents.StrongAcid.Amount}" />
+        <SetVariable Variable="WaterAmount" Expression="{Binding Contents.Water.Amount}" />
+        <SetVariable Variable="CurrentPH" Expression="{Binding Contents.PH}" />
+
+        <!--<SetVariable Variable="Ca" Expression="[AcidAmount]/([WaterAmount]*1000)" />-->
+        <SetVariable Variable="Ca" Expression="[conc_HCl]*[AcidAmount]/([AcidAmount]+[WaterAmount])" />
+        <SetVariable Variable="M" Expression="Round([Ca]*1000,3)" />
+        <SetVariable Variable="pH" Expression="0-Log10([Ca])" />
+
+        <SetVariable Variable="pHInc" Expression="Max((CurrentPH-0.5), [pH])" />
+
+        <Setter Target="{Binding Contents}" Property="PH" Value="[pH]" />
+        <Setter Target="{Binding EngineRoot.Lookup.PHMeterPH.Value}" Value="[pH]">
+          <Conditions>
+            <DataCondition Target="{Binding EngineRoot.Lookup.BeakerPlaceholder.CurrentElement.ItemId}" Value="Beaker" />
+          </Conditions>
+        </Setter>
+			  <Setter Target="AcidOrBaseDisplay" Property="Value" Value="Round([AcidAmount]*0.0125,2)">
+          <Conditions>
+            <DataCondition Target="{Binding EngineRoot.Lookup.BeakerPlaceholder.CurrentElement.ItemId}" Value="Beaker" />
+          </Conditions>
+        </Setter>
+			</Actions>
+		</Simulation>
+
+		<Simulation Id="StrongBaseSimulation" Interval="1">
+			<Conditions>
+        <DataCondition Target="{Binding Contents.Water}" Property="Amount" Comparison="GreaterThan" Value="0" />
+	    	<!--<DataCondition Target="{Binding Contents}" Property="Amount" Comparison="GreaterThan" Value="0" />-->
+	    </Conditions>
+			<Actions>
+        <SetVariable Variable="temp" Expression="{Binding EngineRoot.Lookup.AcidOrBaseAmount.Value}" />
+			  <Setter Target="{Binding Contents.StrongBase.Amount}" Value="[temp]" />
+        
+        <SetVariable Variable="conc" Expression="0.1" />
+        <SetVariable Variable="BaseAmount" Expression="{Binding Contents.StrongBase.Amount}" />
+				<SetVariable Variable="WaterAmount" Expression="{Binding Contents.Water.Amount}" />
+        <SetVariable Variable="CurrentPH" Expression="{Binding Contents.PH}" />
+
+        <SetVariable Variable="Cb" Expression="[conc]*[BaseAmount]/([BaseAmount]+[WaterAmount])" />
+        <SetVariable Variable="M" Expression="Round([Cb]*1000,3)" />
+        <SetVariable Variable="pH" Expression="14+Log10([Cb])" />
+
+        <SetVariable Variable="pHInc" Expression="Min((CurrentPH+0.5), [pH])" />
+
+        <Setter Target="{Binding Contents}" Property="PH" Value="[pH]" />
+        <Setter Target="{Binding EngineRoot.Lookup.PHMeterPH.Value}" Value="[pH]">
+          <Conditions>
+            <DataCondition Target="{Binding EngineRoot.Lookup.BeakerPlaceholder.CurrentElement.ItemId}" Value="Beaker" />
+          </Conditions>
+        </Setter>
+			  <Setter Target="AcidOrBaseDisplay" Property="Value" Value="Round([BaseAmount]*0.0125,2)">
+          <Conditions>
+            <DataCondition Target="{Binding EngineRoot.Lookup.BeakerPlaceholder.CurrentElement.ItemId}" Value="Beaker" />
+          </Conditions>
+        </Setter>
+      </Actions>
+		</Simulation>
+
+    <Simulation Id="WeakAcidSimulation" Interval="1">
+      <Conditions>
+        <DataCondition Target="{Binding Contents.Water}" Property="Amount" Comparison="GreaterThan" Value="0" />
+        <!--<DataCondition Target="{Binding Contents}" Property="Amount" Comparison="GreaterThan" Value="0" />-->
+      </Conditions>
+			<Properties>
+				<Property Id="Ka" Type="Double" Required="true" Value="1.8*10^-5" />
+			</Properties>
+			<Actions>
+        <SetVariable Variable="temp" Expression="{Binding EngineRoot.Lookup.AcidOrBaseAmount.Value}" />
+			  <Setter Target="{Binding Contents.WeakAcid.Amount}" Value="[temp]" />
+        
+        <SetVariable Variable="conc" Expression="0.1" />
+        <SetVariable Variable="AcidAmount" Expression="{Binding Contents.WeakAcid.Amount}" />
+				<SetVariable Variable="WaterAmount" Expression="{Binding Contents.Water.Amount}" />
+
+        <!--<SetVariable Variable="Ka" Expression="{Binding Property.Ka.Value}" />-->
+        <SetVariable Variable="Ka" Expression="0.000018" />
+				<!--<SetVariable Variable="Ca" Expression="[AcidAmount]/([WaterAmount]*1000)" />-->
+        <SetVariable Variable="Ca" Expression="[conc]*[AcidAmount]/([AcidAmount]+[WaterAmount])" />
+        <SetVariable Variable="M" Expression="Round([Ca]*1000,3)" />
+
+        <SetVariable Variable="D" Expression="([Ka]*[Ka]) + (4*[Ca]*[Ka])" />
+				<SetVariable Variable="H" Expression="(Pow([D], 0.5)-[Ka])/2" />
+        
+        <SetVariable Variable="pH" Expression="0-Log10([H])" />
+
+        <Setter Target="{Binding Contents}" Property="PH" Value="[pH]" />
+        <Setter Target="{Binding EngineRoot.Lookup.PHMeterPH.Value}" Value="[pH]">
+          <Conditions>
+            <DataCondition Target="{Binding EngineRoot.Lookup.BeakerPlaceholder.CurrentElement.ItemId}" Value="Beaker" />
+          </Conditions>
+        </Setter>
+			  <Setter Target="AcidOrBaseDisplay" Property="Value" Value="Round([AcidAmount]*0.0125,2)">
+          <Conditions>
+            <DataCondition Target="{Binding EngineRoot.Lookup.BeakerPlaceholder.CurrentElement.ItemId}" Value="Beaker" />
+          </Conditions>
+        </Setter>
+      </Actions>
+		</Simulation>
+
+		<Simulation Id="WeakBaseSimulation" Interval="1">
+      <Conditions>
+        <DataCondition Target="{Binding Contents.Water}" Property="Amount" Comparison="GreaterThan" Value="0" />
+      </Conditions>
+      <Properties>
+        <Property Id="Kb" Type="Double" Required="true" Value="1.78*10^-5" />
+      </Properties>
+			<Actions>
+        <SetVariable Variable="temp" Expression="{Binding EngineRoot.Lookup.AcidOrBaseAmount.Value}" />
+			  <Setter Target="{Binding Contents.WeakBase.Amount}" Value="[temp]" />
+        
+        <SetVariable Variable="conc" Expression="0.1" />
+        <SetVariable Variable="BaseAmount" Expression="{Binding Contents.WeakBase.Amount}" />
+				<SetVariable Variable="WaterAmount" Expression="{Binding Contents.Water.Amount}" />
+
+        <!--<SetVariable Variable="Kb" Expression="{Binding Property.Kb.Value}" />-->
+        <SetVariable Variable="Kb" Expression="0.0000178" />
+        <!--<SetVariable Variable="Cb" Expression="[BaseAmount]/([WaterAmount]*1000)" />-->
+        <SetVariable Variable="Cb" Expression="[conc]*[BaseAmount]/([BaseAmount]+[WaterAmount])" />
+        <SetVariable Variable="M" Expression="Round([Cb]*1000,3)" />
+
+        <SetVariable Variable="D" Expression="([Kb]*[Kb]) + (4*[Cb]*[Kb])" />
+				<SetVariable Variable="OH" Expression="(Pow([D], 0.5)-[Kb])/2" />
+        
+        <SetVariable Variable="pOH" Expression="0-Log10([OH])" />
+				<SetVariable Variable="pH" Expression="14-pOH" />
+
+        <Setter Target="{Binding Contents}" Property="PH" Value="[pH]" />
+        <Setter Target="{Binding EngineRoot.Lookup.PHMeterPH.Value}" Value="[pH]">
+          <Conditions>
+            <DataCondition Target="{Binding EngineRoot.Lookup.BeakerPlaceholder.CurrentElement.ItemId}" Value="Beaker" />
+          </Conditions>
+        </Setter>
+			  <Setter Target="AcidOrBaseDisplay" Property="Value" Value="Round([BaseAmount]*0.0125,2)">
+          <Conditions>
+            <DataCondition Target="{Binding EngineRoot.Lookup.BeakerPlaceholder.CurrentElement.ItemId}" Value="Beaker" />
+          </Conditions>
+        </Setter>
+      </Actions>
+		</Simulation>
+
+    <Simulation Id="WeakBaseWithStrongAcidSimulation" Interval="1">
+      <Conditions>
+        <DataCondition Target="{Binding Contents.WaterWithWeakBase}" Property="Amount" Comparison="GreaterThan" Value="0" />
+      </Conditions>      
+      <Actions> 
+        <SetVariable Variable="temp" Expression="{Binding EngineRoot.Lookup.AcidOrBaseAmount.Value}" />
+			  <Setter Target="{Binding Contents.StrongAcid.Amount}" Value="[temp]">
+          <Conditions>
+            <DataCondition Target="{Binding Contents.StrongAcid.Amount}" Comparison="GreaterThan" Value="0" />
+          </Conditions>
+        </Setter>
+
+        <SetVariable Variable="conc_NH3OH" Expression="0.1" />
+        <SetVariable Variable="conc_HCl" Expression="0.1" />
+        <SetVariable Variable="kb" Expression="0.0000178" />
+        <SetVariable Variable="pkb" Expression="-Log10([kb])" />
+
+        <!-- The starting volume -->
+        <SetVariable Variable="vol_0" Expression="{Binding Contents.WaterWithWeakBase.Amount}" />
+        <SetVariable Variable="vol_HCl" Expression="{Binding Contents.StrongAcid.Amount}">
+          <Conditions>
+            <DataCondition Target="{Binding Contents.StrongAcid.Amount}" Comparison="GreaterThan" Value="0" />
+          </Conditions>
+        </SetVariable>
+        <SetVariable Variable="vol_HCl" Expression="0">
+          <Conditions>
+            <DataCondition Target="{Binding Contents.StrongAcid.Amount}" Value="0" />
+          </Conditions>
+        </SetVariable>
+
+        <SetVariable Variable="vol_total" Expression="[vol_0]+[vol_HCl]" />
+        <SetVariable Variable="Cb" Expression="[conc_NH3OH]*[vol_0]/[vol_total]" />
+
+        <!-- The H^+ produced by the buffer-->
+        <SetVariable Variable="x_NH3OH" Expression="(-[kb]+Sqrt(Pow([kb],2)+4*[kb]*[Cb]))/2" />
+
+        <!-- The H^+ produced by the strong acid-->
+        <SetVariable Variable="x_HCl" Expression="[conc_HCl]*[vol_HCl]/[vol_total]" />
+
+        <!-- The equation used to calculate pH: 14-pH=pkb+log10((x_HCl+x_NH3OH)/(conc_NH3OH*vol_0/vol_total-(x_HCl+x_NH3OH)))-->
+        <SetVariable Variable="pH_1" Expression="14-[pkb]-Log10(([x_HCl]+[x_NH3OH])/([conc_NH3OH]*[vol_0]/[vol_total]-([x_HCl]+[x_NH3OH])))" />
+
+        <!-- This vol_stop is dependent of concenstration of acid and buffer -->
+        <SetVariable Variable="vol_stop" Expression="0.01962791032" />
+
+        <!-- This pH stop is dependent of concenstration of acid and buffer -->
+        <SetVariable Variable="pH_stop" Expression="4.91" />
+
+        <Setter Target="{Binding EngineRoot.Lookup.PHMeterPH.Value}" Value="[pH_1]">
+          <Conditions>
+            <DataCondition Target="{Binding EngineRoot.Lookup.BeakerPlaceholder.CurrentElement.ItemId}" Value="Beaker" />
+          </Conditions>
+        </Setter>
+			  <Setter Target="AcidOrBaseDisplay" Property="Value" Value="Round([vol_HCl]*0.0125,2)">
+          <Conditions>
+            <DataCondition Target="{Binding EngineRoot.Lookup.BeakerPlaceholder.CurrentElement.ItemId}" Value="Beaker" />
+          </Conditions>
+        </Setter>
+
+        <!-- The starting volumen. 20ml-->
+      </Actions>
+    </Simulation>
+  </Simulations>
+
+  <!-- List all asset bundles that need to be loaded -->
+  <Assets>
+    <Asset AssetPath="Common/Hands" />
+    <Asset AssetPath="Common/LabPack" />
+    <Asset AssetPath="Common/SoundEffects" />
+    <Asset AssetPath="Common/AssistantMecanim" />
+
+    <Asset AssetPath="GUI/Main" />
+    <Asset AssetPath="GUI/Machines" />
+    <Asset AssetPath="GUI/OpenSansRegularFront" />x
+    <Asset AssetPath="GUI/OpenSansRegular" />
+    <Asset AssetPath="GUI/HUD" />
+    
+    <Asset AssetPath="Labs/Introductory/introductory" />
+    <Asset AssetPath="Labs/Introductory/Animation_acid_strong" InstantiateImmediately="false" />
+    <Asset AssetPath="Labs/Introductory/Animation_acid_weak" InstantiateImmediately="false" />
+    <Asset AssetPath="Labs/Introductory/Animation_base_strong" InstantiateImmediately="false" />
+    <Asset AssetPath="Labs/Introductory/Animation_base_weak" InstantiateImmediately="false" />
+  </Assets>
+
+  <!-- Used to setup media animation. You usually don't need to change this -->
+  <MediaCenter Id="MediaCenter" MediaList="MediaList" />
+
+  <!-- Define audio clips to be used here -->
+  <AudioCenter ExternalPath="AudioList" />
+
+  <Images>
+    <Image Id="Image_AcidBase" Name="Hazard Signs" URL="http://labsterim.s3.amazonaws.com/media/labimages/introductory/Quiz_AcidBase1.jpg" IsUnlocked="false" />
+  </Images>
+
+  <!-- Used to define GUI interfaces to be used -->
+  <GUI>
+    <GUIExternal Type="GUIPanel" XmlPath="GUI_Navigation" />
+    <GUIExternal Type="GUIDialogue" XmlPath="GUI_ConversationOVRTransparant" />
+    <GUIExternal Type="GUIDialogue" XmlPath="GUI_PopupTitle" />
+    <GUIExternal Type="GUIDialogue" XmlPath="GUI_Subtitle" />
+    <GUIExternal Type="GUIDialogue" XmlPath="GUI_Subtitle_Simple" />
+    <GUIExternal Type="GUIDialogue" XmlPath="GUI_Notification" />
+    <GUIExternal Type="GUIPanel" XmlPath="GUI_PopupSave" />
+    <GUIExternal Type="GUITooltip" XmlPath="GUI_Tooltip" />
+    <GUIExternal Type="GUIPanel" XmlPath="GUI_PopupSfx" />
+    <GUIExternal Type="GUIScreen" XmlPath="GUI_LabPadScreen" />
+    <GUIExternal Type="GUIPopup" XmlPath="GUI_WikiScreen" />
+    <GUIExternal Type="GUIPanel" XmlPath="GUI_FullScreenImage" />
+
+    <GUIScreen Id="GUIPhMeterScreen" Name="PhMeterScreen" AssetId="Machines" AtlasPath="MachineUIAtlas" FontPath="OpenSansRegular" Align="Center" Resolution="124,99" Visibility="{Binding IsVisible}">
+      <Image Name="UIBackground" Depth="-2" ImageSource="ScreenBackground" Position="0,0" Size="124,99" Align="Center" />
+      <Label Align="TopRight" Text="pH" Position="-14, -42" Size="80,30" TextSize="22" />
+      <Label Align="Top" Position="27,-42" Size="55,10" MaxLineCount="1" Text="{Binding EngineRoot.Lookup.PHMeterPH.Value}" TextSize="22" Color="148,255,148" />
+      <Label Align="TopRight" Text="[94FF94]100[-] ml" Position="54,-15" Size="80,30" TextSize="20" />
+      <Label Align="TopLeft" Text="Water" Position="-55,-9" Size="80,30" TextSize="12" />
+      <Label Align="TopLeft" Text="Acid or" Position="-55,5" Size="80,30" TextSize="12" />
+      <Label Align="TopLeft" Text="Base" Position="-55,16" Size="80,30" TextSize="12" />
+      <Label Align="TopRight" Text="ml" Position="54,10" Size="80,30" TextSize="20" />
+      <Label Align="TopRight" Text="{Binding EngineRoot.Lookup.AcidOrBaseDisplay.Value}" Position="29,10" Size="80,30" TextSize="20" Color="148,255,148" />
+      <Image Name="Background" ImageSource="AxisLine" Depth="8" Position="-51.5,37" TileMode="Sliced" Size="105,3" Color="Black" Align="Left" />
+      <Slider Direction="Horizontal" Size="1,1" Position="-51,37" Value="{Binding EngineRoot.Lookup.AcidOrBaseAmount.Value}" MinValue="160" MaxValue="7850" Steps="0">
+        <Foreground ImageSource="AxisLine" Depth="9" TileMode="Sliced" Size="100,2" />
+        <Thumb ImageSource="AxisLine" Depth="10" TileMode="Sliced" Size="4,8" Align="Center" />
+      </Slider>
+    </GUIScreen>
+
+    <GUITooltip3D Id="Tooltip1" AtlasPath="HUD" Align="Top" Offset="0,0.05" FontPath="OpenSansRegularFront">
+      <Label Name="Tooltip" Depth="1" Align="Bottom" ImageSource="Tooltip" TileMode="Sliced" Position="0,-10" Size="370,65" Color="White" Text="{Binding Tooltip}" TextSize="18" ComparisonVisibility="{Binding Tooltip, Converter=Invert}" ComparisonValue="" AutoResizeWithLabel="true" AutoResizeOffset="50,40" />
+      <Label Name="ExtendedTooltip" Depth="0" Align="Top" ImageSource="Tooltip" TileMode="Sliced" Position="0,10" Size="270,65" Color="255,255,128" Text="{Binding ExtendedTooltip}" TextSize="14" ComparisonVisibility="{Binding ExtendedTooltip, Converter=Invert}" ComparisonValue="" AutoResizeWithLabel="true" AutoResizeOffset="50,35" />
+    </GUITooltip3D>
+	</GUI>
+
+  <!-- Used to list all items to be created during gameplay -->
+  <Items>
+    <Element Id="LabPad" SourceId="LabPad" IsClickable="true" IsPickUpAllowed="false">
+      <Triggers>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="ClickAssistant1" Property="Amount" Value="1" />
+          </Conditions>
+          <Actions>
+            <StartConversation ConversationSentence="" />
+            <StartConversation Target="Conversation_LabPad" ConversationId="Mission2b" />
+            <Save />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="ClickAssistant1" Property="Amount" Value="2" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="Conversation_LabPad" ConversationId="Conv_BloodTypeQuiz" />
+          </Actions>
+        </EventTrigger>
+      </Triggers>
+      <Screens>
+        <Screen GameObjectId="Screen" GUIScreenId="GUI_LabPadScreen" />
+      </Screens>
+    </Element>
+    <Container Id="Pipette" Title="Pipette" GameObjectId="Pipette" MaxAmount="1" Tooltip="Pipette" ExtendedTooltip="Allows you to take a controlled volume of liquid from one container and place it into another - remember clean tips!">
+      <Triggers>
+        <!--  Put on Pipette Tip -->
+        <EventTrigger Event="Drop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="PipetteBox" />
+            <DataCondition Property="ActiveStates" Comparison="Contains" Value="NoTip" />
+          </Conditions>
+          <Actions>
+            <AnimateHandTo Target="{Binding RelativeSource=DropTarget}" />
+            <GotoState StateId="HasTip" />
+            <PlaySound SoundId="PickUp" />
+            <AnimateHandTo IsReverse="true" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="PipetteBox" />
+            <DataCondition Property="ActiveStates" Comparison="Contains" Value="HasTip" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="You already collected a tip" />
+            <CancelEvent />
+          </Actions>
+
+        </EventTrigger>
+
+        <!--  Trash Pipette Tip  -->
+        <EventTrigger Event="Drop">
+          <!-- <Conditions><DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="TrashBin" /></Conditions> -->
+          <Conditions Match="Any">
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="Id" Value="TrashbinFlattop1" />
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="Id" Value="TrashbinFlattop2" />
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="Id" Value="TrashbinFlattop3" />
+          </Conditions>
+          <Actions>
+            <AnimateHandTo Target="{Binding RelativeSource=DropTarget}" />
+            <GotoState StateId="NoTip" />
+            <PlaySound SoundId="Trash" />
+            <AnimateHandTo IsReverse="true" />
+            <!-- <CompleteTask Target="Task_TrashUsedPipetteTips" /> -->
+          </Actions>
+        </EventTrigger>
+
+
+        <!--  Keep track of Pipette Contamination  -->
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="Type" Value="Container" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="Amount" Value="0" />
+            <DataCondition Property="ActiveStates" Comparison="Contains" Value="TipUsed" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="Your pipette tip has already been used and could contaminate reagents and reactions. Always use a clean tip! \n\nContamination can ruin the experiment." />
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Drop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="Type" Value="Container" />
+          </Conditions>
+          <Actions>
+            <GotoState StateId="TipUsed" />
+          </Actions>
+        </EventTrigger>
+
+        <!--  Make sure user puts on a pipette tip  -->
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="Type" Value="Container" />
+            <DataCondition Property="ActiveStates" Comparison="Contains" Value="NoTip" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="You need to have a tip on your pipette in order to collect liquid. \n\nOtherwise the pipette will be contaminated and ruin the experiment." />
+            <!--<Setter Target="Task_UsePipetteWithOutTip" Property="Amount" Value="1" />-->
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+
+        <!--  Prevent user from picking up acid/base using pipette  -->
+        <EventTrigger Event="PreviewDrop">
+          <Conditions Match="Any">
+
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Flask" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="Better don't pick up acid/base using the pipette.\nJust pour it." />
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+      </Triggers>
+      
+      <StateGroups>
+        <StateGroup>
+          <States>
+            <State Id="TipClean" />
+            <State Id="TipUsed" />
+          </States>
+        </StateGroup>
+        <StateGroup TransitionDuration="0">
+          <States>
+            <State Id="NoTip" AnimationId="PipetteTip" IsDefault="true">
+              <Triggers>
+                <Trigger>
+                  <Actions>
+                    <GotoState StateId="TipClean" />
+                    <ModifyContent Mode="Clear" />
+                  </Actions>
+                </Trigger>
+              </Triggers>
+            </State>
+            <State Id="HasTip" AnimationId="PipetteTip" IsReverse="true" />
+          </States>
+        </StateGroup>
+      </StateGroups>
+    </Container>
+
+    <Container Id="FlaskStrongAcid" Title="Flask" ItemId="Flask" GameObjectId="ErlenmeyerFlask" MaxAmount="10000" MaxContentType="1" DropAmount="160" Decals="CorrosiveSticker">
+      <Triggers>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="ClickStrongAcid" Property="Amount" Value="1" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Pipette" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Flask" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Beaker" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="HypertonicSolution" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="HypotonicSolution" />
+          </Conditions>
+          <Actions>
+            <Setter Target="ClickStrongAcid" Property="Amount" Value="0" />
+            <Setter Target="FlaskPlaceholder1" Property="IsEmphasized" Value="false" />
+            <Setter Target="FlaskPlaceholder2" Property="IsEmphasized" Value="false" />
+            <Setter Target="FlaskPlaceholder3" Property="IsEmphasized" Value="false" />
+            <Setter Target="FlaskPlaceholder4" Property="IsEmphasized" Value="false" />
+            <StartQuizBlock Target="QuizblockClickStrongAcid" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Beaker" />
+            <DataCondition Target="{Binding Contents, RelativeSource=DropTarget}" Property="CurrentContentTypes" Comparison="Contains" Value="WeakAcid;StrongBase;WeakBase" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="The beaker already contains another type of acid / base." />
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Pipette" />
+          </Conditions>
+          <Actions>
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Drop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Beaker" />
+            <DataCondition Target="{Binding Contents, RelativeSource=DropTarget}" Property="CurrentContentTypes" Comparison="Contains" Value="WaterWithWeakBase" />
+          </Conditions>
+          <Actions>
+            <Wait Duration="0.5" />
+            <StartConversation Target="EventConversation" ConversationSentence="Click on the pH meter screen to adjust the volume of strong acid that you're adding to the beaker." />
+            <Setter Target="{Binding EngineRoot.Time.TimeLapseMultiplier}" Value="1000" />
+            <!--<Setter Target="Controller" Property="IsEmphasized" Value="true" />-->
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Drop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Beaker" />
+            <DataCondition Target="{Binding Contents, RelativeSource=DropTarget}" Property="CurrentContentTypes" Comparison="Contains" Value="Water" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="You added 1 ml of strong acid">
+              <Conditions>
+                <DataCondition Target="Buffer" Property="IsVisible" Value="false" />
+              </Conditions>
+            </StartConversation>
+            <StartConversation Target="EventConversation" ConversationSentence="You added 1 ml of strong acid.\n\nYou can adjust the concentration by dragging the slider on the pH meter.">
+              <Conditions>
+                <DataCondition Target="Buffer" Property="IsVisible" Value="true" />
+              </Conditions>
+            </StartConversation>
+            <Setter Target="Controller" Property="EmphasizeForSeconds" Value="2">
+              <Conditions>
+                <DataCondition Target="Buffer" Property="IsVisible" Value="true" />
+              </Conditions>
+            </Setter>
+          </Actions>
+        </EventTrigger>
+      </Triggers>
+      <Elements>
+        <Element GameObjectId="Cap" IsVisible="false" />
+      </Elements>
+      <Contents>
+        <Content Type="StrongAcid" Amount="9000" />
+      </Contents>
+    </Container>
+
+    <Container Id="FlaskWeakAcid" Title="Flask" ItemId="Flask" GameObjectId="ErlenmeyerFlask" MaxAmount="10000" MaxContentType="1" DropAmount="160" Decals="CorrosiveSticker">
+      <Triggers>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="ClickWeakAcid" Property="Amount" Value="1" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Pipette" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Flask" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Beaker" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="HypertonicSolution" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="HypotonicSolution" />
+          </Conditions>
+          <Actions>
+            <Setter Target="ClickWeakAcid" Property="Amount" Value="0" />
+            <Setter Target="FlaskPlaceholder1" Property="IsEmphasized" Value="false" />
+            <Setter Target="FlaskPlaceholder2" Property="IsEmphasized" Value="false" />
+            <Setter Target="FlaskPlaceholder3" Property="IsEmphasized" Value="false" />
+            <Setter Target="FlaskPlaceholder4" Property="IsEmphasized" Value="false" />
+            <StartQuizBlock Target="QuizblockClickWeakAcid" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Beaker" />
+            <DataCondition Target="{Binding Contents, RelativeSource=DropTarget}" Property="CurrentContentTypes" Comparison="Contains" Value="StrongAcid;StrongBase;WeakBase" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="The beaker already contains another type of acid / base." />
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Pipette" />
+          </Conditions>
+          <Actions>
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Beaker" />
+            <DataCondition Target="{Binding Contents, RelativeSource=DropTarget}" Property="CurrentContentTypes" Comparison="Contains" Value="WaterWithWeakBase" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="You put the wrong solution. You need to add strong acid to prepare this buffer solution with pH of 7.4." />
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Drop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Beaker" />
+            <DataCondition Target="{Binding Contents, RelativeSource=DropTarget}" Property="CurrentContentTypes" Comparison="Contains" Value="Water" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="You added 1 ml of weak acid">
+              <Conditions>
+                <DataCondition Target="Buffer" Property="IsVisible" Value="false" />
+              </Conditions>
+            </StartConversation>
+            <StartConversation Target="EventConversation" ConversationSentence="You added 1 ml of weak acid.\n\nYou can adjust the concentration by dragging the slider on the pH meter.">
+              <Conditions>
+                <DataCondition Target="Buffer" Property="IsVisible" Value="true" />
+              </Conditions>
+            </StartConversation>
+            <Setter Target="Controller" Property="EmphasizeForSeconds" Value="2">
+              <Conditions>
+                <DataCondition Target="Buffer" Property="IsVisible" Value="true" />
+              </Conditions>
+            </Setter>
+          </Actions>
+        </EventTrigger>
+      </Triggers>
+      <Elements>
+        <Element GameObjectId="Cap" IsVisible="false" />
+      </Elements>
+      <Contents>
+        <Content Type="WeakAcid" Amount="9000" />
+      </Contents>
+    </Container>
+
+    <Container Id="FlaskStrongBase" Title="Flask" ItemId="Flask" GameObjectId="ErlenmeyerFlask" MaxAmount="10000" MaxContentType="1" DropAmount="160" Decals="CorrosiveSticker">
+      <Triggers>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="ClickStrongBase" Property="Amount" Value="1" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Pipette" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Flask" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Beaker" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="HypertonicSolution" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="HypotonicSolution" />
+          </Conditions>
+          <Actions>
+            <Setter Target="ClickStrongBase" Property="Amount" Value="0" />
+            <Setter Target="FlaskPlaceholder1" Property="IsEmphasized" Value="false" />
+            <Setter Target="FlaskPlaceholder2" Property="IsEmphasized" Value="false" />
+            <Setter Target="FlaskPlaceholder3" Property="IsEmphasized" Value="false" />
+            <Setter Target="FlaskPlaceholder4" Property="IsEmphasized" Value="false" />
+            <StartQuizBlock Target="QuizblockClickStrongBase" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Beaker" />
+            <DataCondition Target="{Binding Contents, RelativeSource=DropTarget}" Property="CurrentContentTypes" Comparison="Contains" Value="StrongAcid;WeakAcid;WeakBase" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="The beaker already contains another type of acid / base." />
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Pipette" />
+          </Conditions>
+          <Actions>
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Beaker" />
+            <DataCondition Target="{Binding Contents, RelativeSource=DropTarget}" Property="CurrentContentTypes" Comparison="Contains" Value="WaterWithWeakBase" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="You put the wrong solution. You need to choose the conjugate acid for weak base." />
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Drop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Beaker" />
+            <DataCondition Target="{Binding Contents, RelativeSource=DropTarget}" Property="CurrentContentTypes" Comparison="Contains" Value="Water" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="You added 1 ml of strong base">
+              <Conditions>
+                <DataCondition Target="Buffer" Property="IsVisible" Value="false" />
+              </Conditions>
+            </StartConversation>
+            <StartConversation Target="EventConversation" ConversationSentence="You added 1 ml of strong base.\n\nYou can adjust the concentration by dragging the slider on the pH meter.">
+              <Conditions>
+                <DataCondition Target="Buffer" Property="IsVisible" Value="true" />
+              </Conditions>
+            </StartConversation>
+            <Setter Target="Controller" Property="EmphasizeForSeconds" Value="2">
+              <Conditions>
+                <DataCondition Target="Buffer" Property="IsVisible" Value="true" />
+              </Conditions>
+            </Setter>
+          </Actions>
+        </EventTrigger>
+      </Triggers>
+      <Elements>
+        <Element GameObjectId="Cap" IsVisible="false" />
+      </Elements>
+      <Contents>
+        <Content Type="StrongBase" Amount="9000" />
+      </Contents>
+    </Container>
+
+    <Container Id="FlaskWeakBase" Title="Flask" ItemId="Flask" GameObjectId="ErlenmeyerFlask" MaxAmount="10000" MaxContentType="1" DropAmount="160" Decals="CorrosiveSticker">
+      <Triggers>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="ClickWeakBase" Property="Amount" Value="1" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Pipette" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Flask" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Beaker" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="HypertonicSolution" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="HypotonicSolution" />
+          </Conditions>
+          <Actions>
+            <Setter Target="ClickWeakBase" Property="Amount" Value="0" />
+            <Setter Target="FlaskPlaceholder1" Property="IsEmphasized" Value="false" />
+            <Setter Target="FlaskPlaceholder2" Property="IsEmphasized" Value="false" />
+            <Setter Target="FlaskPlaceholder3" Property="IsEmphasized" Value="false" />
+            <Setter Target="FlaskPlaceholder4" Property="IsEmphasized" Value="false" />
+            <StartQuizBlock Target="QuizblockClickWeakBase" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Beaker" />
+            <DataCondition Target="{Binding Contents, RelativeSource=DropTarget}" Property="CurrentContentTypes" Comparison="Contains" Value="StrongAcid;WeakAcid;StrongBase" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="The beaker already contains another type of acid / base." />
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Pipette" />
+          </Conditions>
+          <Actions>
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Beaker" />
+            <DataCondition Target="{Binding Contents, RelativeSource=DropTarget}" Property="CurrentContentTypes" Comparison="Contains" Value="WaterWithWeakBase" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="You put the wrong solution. You need to choose the conjugate acid for weak base." />
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Drop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="ItemId" Value="Beaker" />
+            <DataCondition Target="{Binding Contents, RelativeSource=DropTarget}" Property="CurrentContentTypes" Comparison="Contains" Value="Water" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="EventConversation" ConversationSentence="You added 1 ml of weak base">
+              <Conditions>
+                <DataCondition Target="Buffer" Property="IsVisible" Value="false" />
+              </Conditions>
+            </StartConversation>
+            <StartConversation Target="EventConversation" ConversationSentence="You added 1 ml of weak base.\n\nYou can adjust the concentration by dragging the slider on the pH meter.">
+              <Conditions>
+                <DataCondition Target="Buffer" Property="IsVisible" Value="true" />
+              </Conditions>
+            </StartConversation>
+            <Setter Target="Controller" Property="EmphasizeForSeconds" Value="2">
+              <Conditions>
+                <DataCondition Target="Buffer" Property="IsVisible" Value="true" />
+              </Conditions>
+            </Setter>
+          </Actions>
+        </EventTrigger>
+      </Triggers>
+      <Elements>
+        <Element GameObjectId="Cap" IsVisible="false" />
+      </Elements>
+      <Contents>
+        <Content Type="WeakBase" Amount="9000" />
+      </Contents>
+    </Container>
+    
+    <Container Id="Beaker" Title="Beaker" GameObjectId="Beaker" MaxAmount="16000" MaxContentType="4" AcceptContentsPickup="false">
+      <Triggers>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="CurrentContentTypes" Comparison="Contains" Value="Water" />
+          </Conditions>
+          <Actions>
+            <!-- The beaker already contains water -->
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+        
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=DropTarget}" Property="Id" Value="BeakerPlaceholder" />
+            <DataCondition Target="BromothymolBlue" Property="IsVisible" Value="false" />
+          </Conditions>
+          <Actions>
+            <Setter Target="CheckNewBeaker" Property="Amount" Value="1" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <!--<DataCondition Target="{Binding RelativeSource=DropTarget}" Property="Id" Value="BeakerPlaceholder" />-->
+            <DataCondition Target="{Binding CurrentElement, RelativeSource=CurrentHand}" Property="ItemId" Comparison="Equals" Value="Flask" />
+            <DataCondition Target="{Binding CurrentElement.Contents, RelativeSource=CurrentHand}" Property="CurrentContentTypes" Comparison="Contains" Value="StrongAcid" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="NotContains" Value="WeakAcid" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="NotContains" Value="StrongBase" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="NotContains" Value="WeakBase" />
+            <TaskNotCompleted Target="Task_WatchStrongAcidAnim" />
+          </Conditions>
+          <Actions>
+            <Setter Target="CheckNewBeaker" Property="Amount" Value="0" />
+            <Setter Target="BeakerPlaceholder" Property="EmphasizeForSeconds" Value="0" />
+            <RunScript ScriptId="PlayStrongAcidAnim" />
+            <CompleteTask Target="Task_WatchStrongAcidAnim" />
+            <Wait Notification="AnimationEnded" />
+            <RunScript ScriptId="TryAnotherFlask" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="{Binding CurrentElement, RelativeSource=CurrentHand}" Property="ItemId" Comparison="Equals" Value="Flask" />
+            <DataCondition Target="{Binding CurrentElement.Contents, RelativeSource=CurrentHand}" Property="CurrentContentTypes" Comparison="Contains" Value="WeakAcid" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="NotContains" Value="StrongAcid" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="NotContains" Value="StrongBase" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="NotContains" Value="WeakBase" />
+            <TaskNotCompleted Target="Task_WatchWeakAcidAnim" />
+          </Conditions>
+          <Actions>
+            <Setter Target="CheckNewBeaker" Property="Amount" Value="0" />
+            <Setter Target="BeakerPlaceholder" Property="EmphasizeForSeconds" Value="0" />
+            <RunScript ScriptId="PlayWeakAcidAnim" />
+            <CompleteTask Target="Task_WatchWeakAcidAnim" />
+            <Wait Notification="AnimationEnded" />
+            <RunScript ScriptId="TryAnotherFlask" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="{Binding CurrentElement, RelativeSource=CurrentHand}" Property="ItemId" Comparison="Equals" Value="Flask" />
+            <DataCondition Target="{Binding CurrentElement.Contents, RelativeSource=CurrentHand}" Property="CurrentContentTypes" Comparison="Contains" Value="StrongBase" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="NotContains" Value="StrongAcid" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="NotContains" Value="WeakAcid" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="NotContains" Value="WeakBase" />
+            <TaskNotCompleted Target="Task_WatchStrongBaseAnim" />
+          </Conditions>
+          <Actions>
+            <Setter Target="CheckNewBeaker" Property="Amount" Value="0" />
+            <Setter Target="BeakerPlaceholder" Property="EmphasizeForSeconds" Value="0" />
+            <RunScript ScriptId="PlayStrongBaseAnim" />
+            <CompleteTask Target="Task_WatchStrongBaseAnim" />
+            <Wait Notification="AnimationEnded" />
+            <RunScript ScriptId="TryAnotherFlask" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="{Binding CurrentElement, RelativeSource=CurrentHand}" Property="ItemId" Comparison="Equals" Value="Flask" />
+            <DataCondition Target="{Binding CurrentElement.Contents, RelativeSource=CurrentHand}" Property="CurrentContentTypes" Comparison="Contains" Value="WeakBase" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="NotContains" Value="StrongAcid" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="NotContains" Value="WeakAcid" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="NotContains" Value="StrongBase" />
+            <TaskNotCompleted Target="Task_WatchWeakBaseAnim" />
+          </Conditions>
+          <Actions>
+            <Setter Target="CheckNewBeaker" Property="Amount" Value="0" />
+            <Setter Target="BeakerPlaceholder" Property="EmphasizeForSeconds" Value="0" />
+            <RunScript ScriptId="PlayWeakBaseAnim" />
+            <CompleteTask Target="Task_WatchWeakBaseAnim" />
+            <Wait Notification="AnimationEnded" />
+            <RunScript ScriptId="TryAnotherFlask" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="CheckNewBeaker" Property="Amount" Value="1" />
+            <DataCondition Target="{Binding CurrentElement, RelativeSource=CurrentHand}" Property="ItemId" Comparison="Equals" Value="Flask" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="Contains" Value="StrongAcid" />
+          </Conditions>
+          <Actions>
+            <Setter Target="CheckNewBeaker" Property="Amount" Value="0" />
+            <StartConversation Target="EventConversation" ConversationSentence="Put the beaker in the trash bin and take a new one." />
+            <RunScript ScriptId="FlashTrashBinAndBeaker" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="CheckNewBeaker" Property="Amount" Value="1" />
+            <DataCondition Target="{Binding CurrentElement, RelativeSource=CurrentHand}" Property="ItemId" Comparison="Equals" Value="Flask" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="Contains" Value="WeakAcid" />
+          </Conditions>
+          <Actions>
+            <Setter Target="CheckNewBeaker" Property="Amount" Value="0" />
+            <StartConversation Target="EventConversation" ConversationSentence="Put the beaker in the trash bin and take a new one." />
+            <RunScript ScriptId="FlashTrashBinAndBeaker" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="CheckNewBeaker" Property="Amount" Value="1" />
+            <DataCondition Target="{Binding CurrentElement, RelativeSource=CurrentHand}" Property="ItemId" Comparison="Equals" Value="Flask" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="Contains" Value="StrongBase" />
+          </Conditions>
+          <Actions>
+            <Setter Target="CheckNewBeaker" Property="Amount" Value="0" />
+            <StartConversation Target="EventConversation" ConversationSentence="Put the beaker in the trash bin and take a new one." />
+            <RunScript ScriptId="FlashTrashBinAndBeaker" />
+          </Actions>
+        </EventTrigger>
+        <EventTrigger Event="Click">
+          <Conditions>
+            <DataCondition Target="CheckNewBeaker" Property="Amount" Value="1" />
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="ItemId" Comparison="Equals" Value="Flask" />
+            <DataCondition Target="{Binding Contents}" Property="CurrentContentTypes" Comparison="Contains" Value="WeakBase" />
+          </Conditions>
+          <Actions>
+            <Setter Target="CheckNewBeaker" Property="Amount" Value="0" />
+            <StartConversation Target="EventConversation" ConversationSentence="Put the beaker in the trash bin and take a new one." />
+            <RunScript ScriptId="FlashTrashBinAndBeaker" />
+          </Actions>
+        </EventTrigger>
+      </Triggers>
+      <Contents>
+        <Content Type="Water" Amount="8000" />
+      </Contents>
+    </Container>
+    
+    <Container Id="BeakerWeakBase" Title="Beaker" ItemId="Beaker" GameObjectId="Beaker" MaxAmount="16000" MaxContentType="4" AcceptContentsPickup="false">
+      <Triggers>
+        <EventTrigger Event="PreviewDrop">
+          <Conditions>
+            <DataCondition Target="{Binding RelativeSource=CurrentHand}" Property="CurrentContentTypes" Comparison="Contains" Value="Water" />
+          </Conditions>
+          <Actions>
+            <!-- The beaker already contains water -->
+            <CancelEvent />
+          </Actions>
+        </EventTrigger>
+      </Triggers>
+      <Contents>
+        <Content Type="WaterWithWeakBase" Amount="8000" />
+      </Contents>
+    </Container>
+    
+    <Container Id="TestTube" Title="TestTube" GameObjectId="TestTube" MaxAmount="100" Tooltip="Test Tube" />
+
+    <Container Id="TestTubeWithBlood" Title="TestTube" ItemId="TestTube" GameObjectId="TestTube" MaxAmount="100">
+      <Contents>
+        <Content Type="RedBlood" Amount="50" />
+      </Contents>
+    </Container>
+    
+    
+</Items>
+
+  <!-- Define container contents (usually liquids) in here. -->
+  <ContentTypes>
+    <ContentType Id="ProgressLiquid" Title="Special Solution that can track Progress" Color="Green" Opacity="50" />
+    <ContentType Id="StrongAcid" Title="HCl (Strong Acid)" Color="225,255,225" Opacity="13" Simulation="StrongAcidSimulation" />
+    <ContentType Id="WeakAcid" Title="CH[sub]3[/sub]COOH (Weak Acid)" Color="225,255,225" Opacity="13" Simulation="WeakAcidSimulation" />
+    <ContentType Id="StrongBase" Title="NaOH (Strong Base)" Color="225,255,225" Opacity="13" Simulation="StrongBaseSimulation" />
+    <ContentType Id="WeakBase" Title="NH[sub]4[/sub]OH (Weak Base)" Color="225,255,225" Opacity="13" Simulation="WeakBaseSimulation" />
+    <ContentType Id="Water" Title="Water" Color="228,245,255" Opacity="13" />
+    <ContentType Id="WaterWithWeakBaseDummy" Title="Water with Weak Base" Color="225,255,225" Opacity="13" />
+    <ContentType Id="WaterWithWeakBase" Title="Water with Weak Base" Color="225,255,225" Opacity="13" Simulation="WeakBaseWithStrongAcidSimulation" />
+    <ContentType Id="BromothymolBlue" Title="Bromothymol Blue" Color="0,0,0,0" Opacity="50" Simulation="PHColorSimulation" OverrideContentColor="true" />
+    <ContentType Id="Hypertonic" Title="Hypertonic Solution" Color="128,128,128" Opacity="50" />
+    <ContentType Id="Hypotonic" Title="Hypotonic Solution" Color="128,128,128" Opacity="50" />
+    <ContentType Id="RedBlood" Title="Red Blood Cells" Color="153,0,0" Opacity="100" />
+  </ContentTypes>
+
+  <!-- Define all custom variables in here -->
+  <Attributes>
+    <Attribute Id="PHMeterPH" Value="7.4" />
+    <Attribute Id="AcidOrBaseDisplay" Value="0" />
+    <Attribute Id="AcidOrBaseAmount" Value="160" />
+    <Attribute Id="GetCorrectPh" Value="0" />
+    <Attribute Id="MicroscopePlateClicked" Value="0" />
+    <Attribute Id="Buffer" IsVisible="false" />
+    
+    <Attribute Id="StartAcidBase" Value="1" />
+    <Attribute Id="CheckNewBeaker" Amount="0" />
+    <Attribute Id="StartDiffusionOsmosis" Amount="0" />
+    <Attribute Id="ClickAssistant1" Amount="0" />
+    <Attribute Id="ClickStrongAcid" Amount="1" />
+    <Attribute Id="ClickWeakAcid" Amount="1" />
+    <Attribute Id="ClickStrongBase" Amount="1" />
+    <Attribute Id="ClickWeakBase" Amount="1" />
+    <Attribute Id="ClickHypertonic" Amount="0" />
+    <Attribute Id="ClickHypotonic" Amount="0" />
+    <Attribute Id="ChooseSolution" Amount="0" />
+    <Attribute Id="FlashTrashBinAndBeaker_Running" Amount="0" />
+    <Attribute Id="RedBloodState" Amount="1" /> <!-- 0 = shrink, 1 = normal, 2 = expand, 3 = explode -->
+    <Attribute Id="PrevRedBloodState" Amount="1" />
+    <Attribute Id="Randomizer" />
+    <Attribute Id="BloodTypeResult" />
+  </Attributes>
+
+  <!-- List all conversations and quizzes in here -->
+  <Conversations>
+    <Conversation Id="Assist001" Sentence="Click on Workbench 1 to learn about acids and bases." />
+    <Conversation Id="Assist002" Sentence="Click on the flask and then click on the beaker to mix the content." />
+    <Conversation Id="Assist003" Sentence="There is a beaker containing weak base. Add strong acid and adjust the slider to get pH 7.4." />
+    <Conversation Id="Assist004" Sentence="Take a cell culture plate and place it on the microscope." />
+    <Conversation Id="Assist005" Sentence="Use the ethanol flask on the patient to disinfect his arm." />
+    <Conversation Id="Assist006" Sentence="Place the sample tube in the rack and use the pipette to add blood sample into all 4 circles of the blood typing test card." />
+    <Conversation Id="Assist007" Sentence="Go to Workbench 5 to perform blood typing test." />
+    <Conversation Id="Assist008" Sentence="Now the arm is disinfected. You can take the blood sample using the vacutainer." />
+    <Conversation Id="Assist009" Sentence="Go back to the lab by clicking the lab icon." />
+    <Conversation Id="Assist010" Sentence="Go to Workbench 4." />
+    <Conversation Id="Assist011" Sentence="Choose the solution you would like to add." />
+    <Conversation Id="Assist012" Sentence="Don't forget to close the incubator to maintain the temperature and humidity." />
+    <Conversation Id="Assist013" Sentence="Analyze the result and click here when you are ready." />
+    
+    <Conversation Id="Conv_GoBackToLab" Sentence="Congratulations! You have collected a blood sample.\n\nNow let's go back to the lab.">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <ShowScene SceneId="LabRoom" />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Conversation>
+    <Conversation Id="Conv_WaitBloodSample" Sentence="We need to wait a couple of minutes until the blood sample has finished reacting with the test material." />
+    <Conversation Id="Conv_IdentifyBlood" Sentence="Now we need to identify the blood type. Analyze the result and click here when you are ready!">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <StartConversation ConversationSentence="Assist013" />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Conversation>
+
+
+    <Conversation Id="WelcomeToLabster" NextConvId="WelcomeToIntroductory" Sentence="Welcome to Labster!\n\nA novel teaching platform for exploring the world of biotechnology.\n\nYou are about the start the Introductory Lab, where you will learn about acid and bases, diffusion and osmosis, and prepare a blood typing test.\n\nThe LabPad will guide you through the virtual Lab. At the top right corner, you can follow your progress and score. Your score will be calculated from the quiz questions. You only get the full score if you answer all the questions correctly on the first try. For every additional try you will get less points.\n\nThe LabPad is organized in three tabs.\n\n- The instructions and quiz questions will show up in the &quot;Home&quot; tab.\n\n- With the &quot;Media&quot; tab you can access your stored images.\n\n- The &quot;Theory&quot; tab contains all of the relevant theory. Click on it if you want to read up on something." ReadMoreUrl="Intro_Lab" />
+    <Conversation Id="WelcomeToIntroductory" Sentence="In this laboratory, you will first learn about acids and bases. We will employ the acids and bases concept to prepare a buffered media that is needed for the blood cells.\n\nAfter that we will test the blood cells under different salt concentrations to study diffusion and osmosis. Finally, we will do a blood typing test to save a patient that needs blood transfusion.\n\nLet's begin mixing some acids and bases in Workbench 1!" ReadMoreUrl="Introduction_laboratory">
+      <Triggers><Trigger><Actions>
+        <StartConversation ConversationId="Assist001" />
+        <Setter Target="Table2b" Property="IsEmphasized" Value="true" />
+      </Actions></Trigger></Triggers>
+    </Conversation>
+    <Conversation Id="AcidBase_1" Sentence="Strong acids and strong bases can be harmful to you. They can easily burn your skin or even corrode metals! You need to be protected properly in order to work with these materials.\n\nBut in Labster's virtual laboratory, you are well protected. Make sure that you work within the designated area and look for the hazard signs on the workbenches." ReadMoreUrl="Acid_and_base">
+      <Triggers><Trigger><Actions>
+        <StartQuizBlock Target="QuizblockWorkBench1" />
+        <Setter Target="FlaskPlaceholder1" Property="IsClickable" Value="true" />
+        <Setter Target="FlaskPlaceholder2" Property="IsClickable" Value="true" />
+        <Setter Target="FlaskPlaceholder3" Property="IsClickable" Value="true" />
+        <Setter Target="FlaskPlaceholder4" Property="IsClickable" Value="true" />
+      </Actions></Trigger></Triggers>
+    </Conversation>
+    <Conversation Id="AcidBase_golve" Sentence="Click on the glove box on the workbench to take a pair of gloves." /> <!-- Marcel this convo should show up in the LabPad corner, Trigger QuizblockWorkBench1 when the gloves are picked up. Btw we need gloves on the table :)-->
+
+    <Conversation Id="AcidBase_2" Sentence="Why should we learn about acids and bases?\n\nWell, they are very important in our lives!\n\nFor example, Hydrochloric acid (HCl) is vital for our body to digest food. Another example is our blood: it is slightly basic and it is a very powerful buffer, which helps maintain our body pH very strictly. We will learn more about buffers soon!" ReadMoreUrl="Acid_and_base">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <StartQuizBlock Target="QuizblockWorkBench1_2" />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Conversation>
+
+    <Conversation Id="ConvMission1" Sentence="I have prepared the workbench for you. There is a pH meter station, where you can measure the pH of a solution in a beaker. Next to the pH meter, you will find four flasks. Each contains either a strong acid, a weak acid, a strong base or a weak base. You can also take a new beaker that contains water if you want to repeat the experiment.\n\nLet's observe what will happen if you add acid or base into a beaker of water." ReadMoreUrl="Acid_and_base">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <StartConversation ConversationId="Assist002" />
+            <!-- wait add because if not, highlighting system bug will occur -->
+            <Wait Duration="0" />
+            <!--<Setter Target="FlaskPlaceholder1" Property="IsEmphasized" Value="true" />
+            <Setter Target="FlaskPlaceholder2" Property="IsEmphasized" Value="true" />
+            <Setter Target="FlaskPlaceholder3" Property="IsEmphasized" Value="true" />
+            <Setter Target="FlaskPlaceholder4" Property="IsEmphasized" Value="true" />-->
+            <Save />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Conversation>
+
+    <Conversation Id="Quiz_StrongAcid_Correct" Sentence="&lt;p&gt;That's correct! H[sub]2[/sub]SO[sub]4[/sub] is a strong acid, whic means that it will dissociate completely according to the following equation:&lt;/p&gt;&lt;p&gt;&lt;img alt=&quot;&quot; src=&quot;http://labsterim.s3.amazonaws.com/media/labimages/introductory/Quiz_StrongAcid.png&quot;/&gt;&lt;/p&gt;">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <Wait Notification="PopupClosed" />
+            <StartConversation ConversationSentence="Click the beaker to add this solution" />
+            <Setter Target="BeakerPlaceholder" Property="EmphasizeForSeconds" Value="2" />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Conversation>
+    <Conversation Id="Quiz_WeakAcid_Correct" Sentence="&lt;p&gt;Great job! We can use the ICE chart to keep track of the changing concentrations in an equilibrium concentration. ICE stands for Initial, Change and Equilibrium.&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;http://labsterim.s3.amazonaws.com/media/labimages/introductory/Quiz_WeakAcid.png&quot;/&gt;&lt;/p&gt;">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <Wait Notification="PopupClosed" />
+            <StartConversation ConversationSentence="Click the beaker to add this solution" />
+            <Setter Target="BeakerPlaceholder" Property="EmphasizeForSeconds" Value="2" />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Conversation>
+
+    <Conversation Id="Mission2b" ReadMoreUrl="Acid_and_base" Sentence="Great job! For our next experiment, we need to prepare a buffer solution. A buffer solution is a mixture of a weak acid and its conjugate base or a weak base and its conjugate acid.\n\nThe pH of a buffer solution changes very little, when you add a small amount of strong acid or base. A buffer is used to prevent changes in the pH of a solution. For example, when maintaining cells in culture, you do not want the pH to change when adding a drug or another solution.\n\nYou can read more about buffers and how they work in the &quot;Theory&quot;.">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <StartQuizBlock Target="QuizblockBuffer" />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Conversation>
+
+    <Conversation Id="Mission2_Completed" NextConvId="Finished" Sentence="Great job! We need this media to culture human blood cells. Our blood is strictly regulated within a narrow pH-interval between 7.35 to 7.45. Below 7.35 our body develops an acidosis that could lead to seizures, arrhythmia, loss of consciousness and even coma! Above 7.45 our body develops an alkalosis with dangerous consequences as well.\n\nOur blood is a great example of a buffer. Buffers prevent the change of pH upon small addition of acids or bases by removing the hydrogen and hydroxide ions added. Buffers consists of a mixture of weak acids and its conjugate bases or weak bases and its conjugate acids. You can read more about buffers by clicking on the &quot;Theory&quot; button." ReadMoreUrl="Acid_and_base">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <ZoomOut />
+            <ZoomOut />
+            <StartConversation ConversationSentence="" />
+            <EndGame />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Conversation>   
+
+    <Conversation Id="Finished" Sentence="Congratulations!\n\nYou have just completed the Introductory Lab. Now you know everything you need to know about the fundamental concepts in biotechnology, such as acids and bases, diffusion and osmosis and also understood blood typing groups." />
+  </Conversations>
+
+  <!-- Script are used to trigger actions with specific conditions -->
+  <Scripts>
+    <Script Id="ShareToFB" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <ShareToFacebook URL="http://www.labster.com/?ref=fb" Title="I just learned all about safety in the lab, acid and bases, diffusion and osmosis at Labster!" ThumbnailURL="http://www.labster.com/wp-content/uploads/Introductory-Lab_image-200x160.png" Summary="With Labster you too can learn about DNA fingerprinting, enzyme kinetics, Mendelian genetics, fermentation and techniques such as PCR, HPLC, Next Generation Sequencing, and many more! Signup today for free access." Target="_self" />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="TryAnotherFlask" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Conditions>
+            <TaskCompleted Target="Task_WatchStrongAcidAnim" />
+            <TaskCompleted Target="Task_WatchWeakAcidAnim" />
+            <TaskCompleted Target="Task_WatchStrongBaseAnim" />
+            <TaskCompleted Target="Task_WatchWeakBaseAnim" />
+          </Conditions>
+          <Actions>
+            <StartConversation ConversationSentence="Good, now we're ready for the next mission. Please click here to continue!" />
+            <Setter Target="ClickAssistant1" Property="Amount" Value="1" />
+            <EndScript />
+          </Actions>
+          <FailActions>
+            <StartConversation ConversationSentence="Great job! Put a new beaker and pour another acid or base from the flask to see the reaction." />
+            <Setter Target="Beaker1" Property="EmphasizeForSeconds" Value="2" />
+            <EndScript />
+          </FailActions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="FlashTrashBinAndBeaker" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="FlashTrashBinAndBeaker_Running" Property="Amount" Value="0" />
+          </Conditions>
+          <Actions>
+            <Setter Target="FlashTrashBinAndBeaker_Running" Property="Amount" Value="1" />
+            <Setter Target="TrashbinFlattop1" Property="EmphasizeForSeconds" Value="1" />
+            <RunScript ScriptId="FlashTrashBinAndBeaker_part2" />
+            <EndScript />
+          </Actions>
+          <FailActions>
+            <EndScript />
+          </FailActions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="FlashTrashBinAndBeaker_part2" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <Wait Duration="1" />
+            <Setter Target="Beaker1" Property="EmphasizeForSeconds" Value="1" />
+            <Setter Target="FlashTrashBinAndBeaker_Running" Property="Amount" Value="0" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="CheckPh7.4">
+      <Triggers>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="GetCorrectPh" Property="Value" Value="0" />
+            <DataCondition Target="{Binding EngineRoot.Lookup.PHMeterPH.Value}" Comparison="GreaterThanOrEqual" Value="7.38" />
+            <DataCondition Target="{Binding EngineRoot.Lookup.PHMeterPH.Value}" Comparison="LessThan" Value="7.45" />
+          </Conditions>
+          <Actions>
+            <Wait Duration="1" />
+            <RunScript ScriptId="CheckPh7.4_part2" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="GetCorrectPh" Property="Value" Value="1" />
+          </Conditions>
+          <Actions>
+            <EndScript />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="CheckPh7.4_part2">
+      <Triggers>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="GetCorrectPh" Property="Value" Value="0" />
+            <DataCondition Target="{Binding EngineRoot.Lookup.PHMeterPH.Value}" Comparison="GreaterThanOrEqual" Value="7.38" />
+            <DataCondition Target="{Binding EngineRoot.Lookup.PHMeterPH.Value}" Comparison="LessThan" Value="7.45" />
+          </Conditions>
+          <Actions>
+            <Setter Target="GetCorrectPh" Property="Value" Value="1" />
+            <StartConversation ConversationSentence="" />
+            <StartConversation Target="Conversation_LabPad" ConversationId="Mission2_Completed" />
+            <Setter Target="{Binding EngineRoot.Time.TimeLapseMultiplier}" Value="1" />
+            <EndScript />
+          </Actions>
+          <FailActions>
+            <Wait Duration="0" />
+            <RunScript ScriptId="CheckPh7.4" />
+            <EndScript />
+          </FailActions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="PlayBloodAnimation" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="PrevRedBloodState" Property="Amount" Value="0" />
+          </Conditions>
+          <Actions>
+            <MoveTo Element="Microscope1Screen" />
+            
+            <EndConversation Target="EventConversation" />
+            <ShowMedia Source="Labs/Introductory/Blood_cells" AllowSkip="false" />
+            <Wait Notification="MediaAnimationStarted" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="instant_shrink" />
+            <RunScript ScriptId="PlayBloodAnimation_part2" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="PrevRedBloodState" Property="Amount" Value="1" />
+          </Conditions>
+          <Actions>
+            <MoveTo Element="Microscope1Screen" />
+            
+            <EndConversation Target="EventConversation" />
+            <ShowMedia Source="Labs/Introductory/Blood_cells" AllowSkip="false" />
+            <Wait Notification="MediaAnimationStarted" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="instant_normalize" />
+            <RunScript ScriptId="PlayBloodAnimation_part2" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="PrevRedBloodState" Property="Amount" Value="2" />
+          </Conditions>
+          <Actions>
+            <MoveTo Element="Microscope1Screen" />
+            
+            <EndConversation Target="EventConversation" />
+            <ShowMedia Source="Labs/Introductory/Blood_cells" AllowSkip="false" />
+            <Wait Notification="MediaAnimationStarted" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="instant_expand" />
+            <RunScript ScriptId="PlayBloodAnimation_part2" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="PrevRedBloodState" Property="Amount" Value="3" />
+          </Conditions>
+          <Actions>
+            <StartConversation ConversationSentence="The blood cells have swelled too much that they exploded. You need to take new cells from the incubator." />
+            <EndScript />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>    
+    <Script Id="PlayBloodAnimation_part2" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="RedBloodState" Property="Amount" Value="0" />
+          </Conditions>
+          <Actions>
+            <Wait Duration="1" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="shrink" />
+            <StartConversation Target="EventConversation" ConversationSentence="The red blood cells shrink.\nTry adding hypotonic solution to see what happens." />
+            <Wait Duration="2" />
+            <Setter Target="MediaCenter" Property="IsSkipButtonVisible" Value="true" />
+            <Wait Notification="AnimationEnded" />
+            <MoveTo Element="Table2a" />
+            <EndConversation Target="EventConversation" />
+            
+            <CompleteTask Target="Task_WatchBloodCellsShrink" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="RedBloodState" Property="Amount" Value="1" />
+          </Conditions>
+          <Actions>
+            <Wait Duration="1" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="normalize" />
+            <StartConversation Target="EventConversation" ConversationSentence="The red blood cells are back to normal.\nTry adding more hypotonic or hypertonic solution." />
+            <Wait Duration="2" />
+            <Setter Target="MediaCenter" Property="IsSkipButtonVisible" Value="true" />
+            <Wait Notification="AnimationEnded" />
+            <MoveTo Element="Table2a" />
+            <EndConversation Target="EventConversation" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="RedBloodState" Property="Amount" Value="2" />
+          </Conditions>
+          <Actions>
+            <Wait Duration="1" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="expand" />
+            <StartConversation Target="EventConversation" ConversationSentence="The red blood cells swell.\nKeep adding hypotonic solution to see what happen." />
+            <Wait Duration="2" />
+            <Setter Target="MediaCenter" Property="IsSkipButtonVisible" Value="true" />
+            <Wait Notification="AnimationEnded" />
+            <MoveTo Element="Table2a" />
+            <EndConversation Target="EventConversation" />
+            
+            <CompleteTask Target="Task_WatchBloodCellsExpand" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="RedBloodState" Property="Amount" Value="3" />
+          </Conditions>
+          <Actions>
+            <Wait Duration="1" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="explode" />
+            <StartConversation Target="EventConversation" ConversationSentence="The red blood cells explode and die." />
+            <Wait Duration="2" />
+            <Setter Target="MediaCenter" Property="IsSkipButtonVisible" Value="true" />
+            <Wait Notification="AnimationEnded" />
+            <MoveTo Element="Table2a" />
+            <EndConversation Target="EventConversation" />
+            
+            <CompleteTask Target="Task_WatchBloodCellsExplode" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="WaitBloodCells" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Conditions>
+            <TaskCompleted Target="Task_WatchBloodCellsShrink" />
+            <TaskCompleted Target="Task_WatchBloodCellsExpand" />
+            <TaskCompleted Target="Task_WatchBloodCellsExplode" />
+          </Conditions>
+          <Actions>
+            <StartConversation Target="Conversation_LabPad" ConversationId="Osmosis_Diabetes" />
+            <DestroyCursorElement />
+            <EndScript />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="PreCheckBloodResult" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="AntiA" Property="IsClickable" Value="false" />
+            <DataCondition Target="AntiB" Property="IsClickable" Value="false" />
+            <DataCondition Target="AntiD" Property="IsClickable" Value="false" />
+            <DataCondition Target="Control" Property="IsClickable" Value="false" />
+          </Conditions>
+          <Actions>
+            <EndConversation Target="EventConversation" />
+            <StartConversation Target="Conversation_LabPad" ConversationId="Conv_WaitBloodSample" />
+            <Wait Notification="PopupClosed" />
+            <RunScript ScriptId="RevealBloodResult" />
+            <Wait Duration="0.5" />
+            <RunScript ScriptId="CheckBloodResult" />
+            <EndScript />
+          </Actions>
+          <FailActions>
+            <EndScript />
+          </FailActions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="RevealBloodResult" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <Setter Target="AntiA_Normal" Property="IsVisible" Value="false" />
+            <Setter Target="AntiB_Normal" Property="IsVisible" Value="false" />
+            <Setter Target="AntiD_Normal" Property="IsVisible" Value="false" />
+            <Setter Target="Randomizer" Property="Amount" Value="RandomInt(0,1)" />
+            <Setter Target="AntiA_Clotted" Property="IsVisible" Value="true">
+              <Conditions>
+                <DataCondition Target="Randomizer" Property="Amount" Value="0" />
+              </Conditions>
+            </Setter>
+            <Setter Target="AntiA_Normal" Property="IsVisible" Value="true">
+              <Conditions>
+                <DataCondition Target="Randomizer" Property="Amount" Value="1" />
+              </Conditions>
+            </Setter>
+            <Setter Target="Randomizer" Property="Amount" Value="RandomInt(0,1)" />
+            <Setter Target="AntiB_Clotted" Property="IsVisible" Value="true">
+              <Conditions>
+                <DataCondition Target="Randomizer" Property="Amount" Value="0" />
+              </Conditions>
+            </Setter>
+            <Setter Target="AntiB_Normal" Property="IsVisible" Value="true">
+              <Conditions>
+                <DataCondition Target="Randomizer" Property="Amount" Value="1" />
+              </Conditions>
+            </Setter>
+            <Setter Target="Randomizer" Property="Amount" Value="RandomInt(0,1)" />
+            <Setter Target="AntiD_Clotted" Property="IsVisible" Value="true">
+              <Conditions>
+                <DataCondition Target="Randomizer" Property="Amount" Value="0" />
+              </Conditions>
+            </Setter>
+            <Setter Target="AntiD_Normal" Property="IsVisible" Value="true">
+              <Conditions>
+                <DataCondition Target="Randomizer" Property="Amount" Value="1" />
+              </Conditions>
+            </Setter>
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="CheckBloodResult" Repeat="Forever">
+      <Triggers>
+        <!-- A+ -->
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="AntiA_Clotted" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiB_Normal" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiD_Clotted" Property="IsVisible" Value="true" />
+            <DataCondition Target="Control_Normal" Property="IsVisible" Value="true" />
+          </Conditions>
+          <Actions>
+            <!--<Setter Target="Blood_A" Property="IsVisible" Value="true" />
+            <Setter Target="Rhesus_Positive" Property="IsVisible" Value="true" />-->
+            <Setter Target="BloodTypeResult" Property="Amount" Value="1" />
+          </Actions>
+        </Trigger>
+        <!-- A- -->
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="AntiA_Clotted" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiB_Normal" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiD_Normal" Property="IsVisible" Value="true" />
+            <DataCondition Target="Control_Normal" Property="IsVisible" Value="true" />
+          </Conditions>
+          <Actions>
+            <!--<Setter Target="Blood_A" Property="IsVisible" Value="true" />
+            <Setter Target="Rhesus_Negative" Property="IsVisible" Value="true" />-->
+            <Setter Target="BloodTypeResult" Property="Amount" Value="2" />
+          </Actions>
+        </Trigger>
+        <!-- B+ -->
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="AntiA_Normal" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiB_Clotted" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiD_Clotted" Property="IsVisible" Value="true" />
+            <DataCondition Target="Control_Normal" Property="IsVisible" Value="true" />
+          </Conditions>
+          <Actions>
+            <!--<Setter Target="Blood_B" Property="IsVisible" Value="true" />
+            <Setter Target="Rhesus_Positive" Property="IsVisible" Value="true" />-->
+            <Setter Target="BloodTypeResult" Property="Amount" Value="3" />
+          </Actions>
+        </Trigger>
+        <!-- B- -->
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="AntiA_Normal" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiB_Clotted" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiD_Normal" Property="IsVisible" Value="true" />
+            <DataCondition Target="Control_Normal" Property="IsVisible" Value="true" />
+          </Conditions>
+          <Actions>
+            <!--<Setter Target="Blood_B" Property="IsVisible" Value="true" />
+            <Setter Target="Rhesus_Negative" Property="IsVisible" Value="true" />-->
+            <Setter Target="BloodTypeResult" Property="Amount" Value="4" />
+          </Actions>
+        </Trigger>
+        <!-- AB+ -->
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="AntiA_Clotted" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiB_Clotted" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiD_Clotted" Property="IsVisible" Value="true" />
+            <DataCondition Target="Control_Normal" Property="IsVisible" Value="true" />
+          </Conditions>
+          <Actions>
+            <!--<Setter Target="Blood_AB" Property="IsVisible" Value="true" />
+            <Setter Target="Rhesus_Positive" Property="IsVisible" Value="true" />-->
+            <Setter Target="BloodTypeResult" Property="Amount" Value="5" />
+          </Actions>
+        </Trigger>
+        <!-- AB- -->
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="AntiA_Clotted" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiB_Clotted" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiD_Normal" Property="IsVisible" Value="true" />
+            <DataCondition Target="Control_Normal" Property="IsVisible" Value="true" />
+          </Conditions>
+          <Actions>
+            <!--<Setter Target="Blood_AB" Property="IsVisible" Value="true" />
+            <Setter Target="Rhesus_Negative" Property="IsVisible" Value="true" />-->
+            <Setter Target="BloodTypeResult" Property="Amount" Value="6" />
+          </Actions>
+        </Trigger>
+        <!-- O+ -->
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="AntiA_Normal" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiB_Normal" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiD_Clotted" Property="IsVisible" Value="true" />
+            <DataCondition Target="Control_Normal" Property="IsVisible" Value="true" />
+          </Conditions>
+          <Actions>
+            <!--<Setter Target="Blood_O" Property="IsVisible" Value="true" />
+            <Setter Target="Rhesus_Positive" Property="IsVisible" Value="true" />-->
+            <Setter Target="BloodTypeResult" Property="Amount" Value="7" />
+          </Actions>
+        </Trigger>
+        <!-- O- -->
+        <Trigger>
+          <Conditions>
+            <DataCondition Target="AntiA_Normal" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiB_Normal" Property="IsVisible" Value="true" />
+            <DataCondition Target="AntiD_Normal" Property="IsVisible" Value="true" />
+            <DataCondition Target="Control_Normal" Property="IsVisible" Value="true" />
+          </Conditions>
+          <Actions>
+            <!--<Setter Target="Blood_O" Property="IsVisible" Value="true" />
+            <Setter Target="Rhesus_Negative" Property="IsVisible" Value="true" />-->
+            <Setter Target="BloodTypeResult" Property="Amount" Value="8" />
+          </Actions>
+        </Trigger>
+        
+        <Trigger>
+          <Actions>
+            <Setter Target="ClickAssistant1" Property="Amount" Value="2" />
+            <StartConversation ConversationSentence="" />
+            <StartConversation ConversationId="Conv_IdentifyBlood" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="CheckBackButtonForBloodQuiz" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <Wait Notification="ZoomedOut" />
+            <EndConversation Target="Conversation_LabPad" />
+            <EndConversation Target="EventConversation" />
+            <MoveTo Element="BloodTestCard" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="AcidBaseAnimationMessages" Repeat="Forever">
+      <Triggers>
+        <NotificationTrigger Notification="AnimationEnded">
+          <Actions>
+            <EndConversation Target="SubtitleConversation" />
+            <EndConversation Target="SubtitleConversationSimple" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message03">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="A strong acid is composed of a proton (H), shown as the small grey spheres, and its conjugate base (A), shown as the large black spheres." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message04">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="Water is composed of one oxygen molecule, shown as the large red spheres, and two hydrogen molecules, shown as the small grey spheres." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message05">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="When a strong acid is mixed with water, a reaction occurs." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message06">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="The strong acid dissociates completely in water. All of the protons (H[sup]+[/sup]) are transferred from the acid to the water creating hydronium ions (H[sub]3[/sub]O[sup]+[/sup]).\nThis results in a high final concentration of hydronium ions in the solution." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message08">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="Weak acid is composed of a proton (H), shown as the small grey spheres, and its conjugate base (A), shown as the large black spheres." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message09">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="Water is composed of one oxygen molecule, shown as the large red spheres, and two Hydrogen molecules, shown as the small grey spheres." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message10">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="When a weak acid is mixed with water, a reaction occurs." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message11">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="The weak acid dissociates partially in water. Some protons (H[sup]+[/sup]) are transferred from the acid to the water creating hydronium ions (H[sub]3[/sub]O[sup]+[/sup])." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message12">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="Most of the protons (H[sup]+[/sup]) move back from the hydronium ions (H[sub]3[/sub]O[sup]+[/sup]) to the conjugate base. This is why there is a low final concentration of hydronium ions in the solution." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message14">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="A strong base is composed of hydroxide ions (OH), shown as the small grey spheres and the larger red spheres, and its conjugate acid (B), shown as the large green spheres." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message15">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="Water is composed of one oxygen molecule, shown as the large red spheres, and two Hydrogen molecules, shown as the small grey spheres." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message16">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="When a strong base is mixed with water, a reaction occurs." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message17">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="The strong base dissociates completely in water into its conjugate acid (B[sup]+[/sup]) and hydroxide ions (OH[sup]-[/sup]) resulting in a high concentration of hydroxide ions in the solution." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message19">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="The weak base is shown as the large green spheres." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message20">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="Water is composed of one oxygen molecule, shown as the large red spheres, and two hydrogen molecules, shown as the small grey spheres." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message21">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="When the weak base is mixed with water, a reaction occurs." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+        <NotificationTrigger Notification="ShowMessage" Parameter="Message22">
+          <Actions>
+            <StartConversation Target="SubtitleConversation" ConversationSentence="The weak base dissociates partially in water into its conjugate acid (B[sup]+[/sup]) and hydroxide ions (OH[sup]-[/sup])." />
+            <Wait Notification="PopupClosed" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="resume" />
+          </Actions>
+        </NotificationTrigger>
+      </Triggers>
+    </Script>
+    <Script Id="PlayStrongAcidAnim" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <Wait Duration="1" />
+            <ShowMedia Source="Labs/Introductory/Animation_acid_strong" ScriptToReplay="PlayStrongAcidAnim" Title="Strong Acid Animation" />
+          </Actions>
+        </Trigger>
+        <Trigger>
+          <Conditions Match="Any">
+            <TaskCompleted Target="Task_WatchStrongAcidAnim" />
+            <TaskCompleted Target="Task_WatchWeakAcidAnim" />
+            <TaskCompleted Target="Task_WatchStrongBaseAnim" />
+            <TaskCompleted Target="Task_WatchWeakBaseAnim" />
+          </Conditions>
+          <Actions>
+            <Wait Duration="2" />
+            <EndConversation Target="EventConversation" />
+            <Wait Duration="1" />
+            <StartConversation Target="Popup_Title" ConversationSentence="Strong Acid Animation" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="no_water" />
+          </Actions>
+          <FailActions>
+            <Wait Duration="2" />
+            <EndConversation Target="EventConversation" />
+            <Wait Duration="1" />
+            <StartConversation Target="Popup_Title" ConversationSentence="Strong Acid Animation" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="water" />
+          </FailActions>
+        </Trigger>
+        <Trigger>
+          <Actions>
+            <Wait Notification="AnimationEnded" />
+            <EndConversation Target="Popup_Title" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="PlayWeakAcidAnim" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <Wait Duration="1" />
+            <ShowMedia Source="Labs/Introductory/Animation_acid_weak" ScriptToReplay="PlayWeakAcidAnim" Title="Weak Acid Animation" />
+          </Actions>
+        </Trigger>
+        <Trigger>
+          <Conditions Match="Any">
+            <TaskCompleted Target="Task_WatchStrongAcidAnim" />
+            <TaskCompleted Target="Task_WatchWeakAcidAnim" />
+            <TaskCompleted Target="Task_WatchStrongBaseAnim" />
+            <TaskCompleted Target="Task_WatchWeakBaseAnim" />
+          </Conditions>
+          <Actions>
+            <Wait Duration="2" />
+            <EndConversation Target="EventConversation" />
+            <Wait Duration="1" />
+            <StartConversation Target="Popup_Title" ConversationSentence="Weak Acid Animation" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="no_water" />
+          </Actions>
+          <FailActions>
+            <Wait Duration="2" />
+            <EndConversation Target="EventConversation" />
+            <Wait Duration="1" />
+            <StartConversation Target="Popup_Title" ConversationSentence="Weak Acid Animation" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="water" />
+          </FailActions>
+        </Trigger>
+        <Trigger>
+          <Actions>
+            <Wait Notification="AnimationEnded" />
+            <EndConversation Target="Popup_Title" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="PlayStrongBaseAnim" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <Wait Duration="1" />
+            <ShowMedia Source="Labs/Introductory/Animation_base_strong" ScriptToReplay="PlayStrongBaseAnim" Title="Strong Base Animation" />
+          </Actions>
+        </Trigger>
+        <Trigger>
+          <Conditions Match="Any">
+            <TaskCompleted Target="Task_WatchStrongAcidAnim" />
+            <TaskCompleted Target="Task_WatchWeakAcidAnim" />
+            <TaskCompleted Target="Task_WatchStrongBaseAnim" />
+            <TaskCompleted Target="Task_WatchWeakBaseAnim" />
+          </Conditions>
+          <Actions>
+            <Wait Duration="2" />
+            <EndConversation Target="EventConversation" />
+            <Wait Duration="1" />
+            <StartConversation Target="Popup_Title" ConversationSentence="Strong Base Animation" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="no_water" />
+          </Actions>
+          <FailActions>
+            <Wait Duration="2" />
+            <EndConversation Target="EventConversation" />
+            <Wait Duration="1" />
+            <StartConversation Target="Popup_Title" ConversationSentence="Strong Base Animation" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="water" />
+          </FailActions>
+        </Trigger>
+        <Trigger>
+          <Actions>
+            <Wait Notification="AnimationEnded" />
+            <EndConversation Target="Popup_Title" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>
+    <Script Id="PlayWeakBaseAnim" Repeat="Forever">
+      <Triggers>
+        <Trigger>
+          <Actions>
+            <Wait Duration="1" />
+            <ShowMedia Source="Labs/Introductory/Animation_base_weak" ScriptToReplay="PlayWeakBaseAnim" Title="Weak Base Animation" />
+          </Actions>
+        </Trigger>
+        <Trigger>
+          <Conditions Match="Any">
+            <TaskCompleted Target="Task_WatchStrongAcidAnim" />
+            <TaskCompleted Target="Task_WatchWeakAcidAnim" />
+            <TaskCompleted Target="Task_WatchStrongBaseAnim" />
+            <TaskCompleted Target="Task_WatchWeakBaseAnim" />
+          </Conditions>
+          <Actions>
+            <Wait Duration="2" />
+            <EndConversation Target="EventConversation" />
+            <Wait Duration="1" />
+            <StartConversation Target="Popup_Title" ConversationSentence="Weak Base Animation" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="no_water" />
+          </Actions>
+          <FailActions>
+            <Wait Duration="2" />
+            <EndConversation Target="EventConversation" />
+            <Wait Duration="1" />
+            <StartConversation Target="Popup_Title" ConversationSentence="Weak Base Animation" />
+            <ControlMedia Action="Resume" HasFrames="false"  EventName="water" />
+          </FailActions>
+        </Trigger>
+        <Trigger>
+          <Actions>
+            <Wait Notification="AnimationEnded" />
+            <EndConversation Target="Popup_Title" />
+            <EndScript />
+          </Actions>
+        </Trigger>
+      </Triggers>
+    </Script>
+  </Scripts>
+
+  <!-- Quest are the objective of your case  -->
+  <Quests>
+    <Quest Id="Quests_Checklist" MustStartInOrder="false" IsAutoSave="false">
+      <!-- Missions will appear on the checklist -->
+      <Missions>
+        <Mission Id="MissionAcidBase" Title="Finish experiment with acid and bases" MustStartInOrder="false" IsAutoSave="false">
+          <!-- Each mission has one or more tasks as the requirements -->
+          <Tasks>
+            <Task Id="Task_WatchStrongAcidAnim" />
+            <Task Id="Task_WatchWeakAcidAnim" />
+            <Task Id="Task_WatchStrongBaseAnim" />
+            <Task Id="Task_WatchWeakBaseAnim" />
+            <Task Id="Task_GetPh7.4">
+              <CompletedWhen>
+                <DataCondition Target="GetCorrectPh" Property="Value" Value="1" />
+              </CompletedWhen>
+            </Task>
+          </Tasks>
+        </Mission>
+        
+      </Missions>
+    </Quest>
+  </Quests>
+
+  <QuizBlocks>
+    <QuizBlock Id="QuizblockWorkBench1" GUIDialogueId="Conversation_LabPad">
+      <CompletedActions>
+        <StartConversation Target="Conversation_LabPad" ConversationId="AcidBase_2" />
+      </CompletedActions>
+    </QuizBlock>
+    <QuizBlock Id="QuizblockWorkBench1_2" GUIDialogueId="Conversation_LabPad">
+      <CompletedActions>
+        <StartConversation Target="Conversation_LabPad" ConversationId="ConvMission1" />
+      </CompletedActions>
+    </QuizBlock>
+    <QuizBlock Id="QuizblockClickStrongAcid" GUIDialogueId="Conversation_LabPad">
+      <CompletedActions>
+        <StartConversation Target="Conversation_LabPad" ConversationId="Quiz_StrongAcid_Correct" />
+      </CompletedActions>
+    </QuizBlock>
+    <QuizBlock Id="QuizblockClickWeakAcid" GUIDialogueId="Conversation_LabPad">
+      <CompletedActions>
+        <StartConversation Target="Conversation_LabPad" ConversationId="Quiz_WeakAcid_Correct" />
+      </CompletedActions>
+    </QuizBlock>
+    <QuizBlock Id="QuizblockClickStrongBase" GUIDialogueId="Conversation_LabPad" />
+    <QuizBlock Id="QuizblockClickWeakBase" GUIDialogueId="Conversation_LabPad" />
+    <QuizBlock Id="QuizblockBuffer" GUIDialogueId="Conversation_LabPad">
+      <CompletedActions>
+        <Setter Target="ClickAssistant1" Property="Amount" Value="0" />
+	        <Setter Target="ClickStrongAcid" Property="Amount" Value="0" />
+	        <Setter Target="ClickWeakAcid" Property="Amount" Value="0" />
+	        <Setter Target="ClickStrongBase" Property="Amount" Value="0" />
+	        <Setter Target="ClickWeakBase" Property="Amount" Value="0" />
+	        <!--<Setter Target="BromothymolBlue" Property="IsVisible" Value="true" />-->
+	        <Setter Target="FlaskPlaceholder1" Property="IsClickable" Value="true" />
+	        <Setter Target="FlaskPlaceholder2" Property="IsClickable" Value="true" />
+	        <Setter Target="FlaskPlaceholder3" Property="IsClickable" Value="true" />
+	        <Setter Target="FlaskPlaceholder4" Property="IsClickable" Value="true" />
+	        <Setter Target="Buffer" Property="IsVisible" Value="true" />
+	        <ModifyContent Target="Beaker1" Mode="Clear" />
+	        <ModifyContent Target="Beaker1" Mode="Add" Type="WaterWithWeakBaseDummy" Amount="90" />
+	        <!--<Setter Target="Controller" Property="EmphasizeForSeconds" Value="3" />-->
+	        <Setter Target="CheckNewBeaker" Property="Amount" Value="0" />
+	        <StartConversation ConversationId="Assist003" />
+        
+          <DestroyPlaceholderItem Target="BeakerPlaceholder" ItemId="{Any}" DestroyAll="true" />
+          <!--<CreateItem Target="BeakerPlaceholder" ItemId="BeakerWeakBase" CanReplace="true" />-->
+        
+	        <Wait Duration="1" />
+	        <RunScript ScriptId="CheckPh7.4" />
+      </CompletedActions>
+    </QuizBlock>
+    <QuizBlock Id="QuizblockWorkbench4" GUIDialogueId="Conversation_LabPad">
+      <CompletedActions>
+        <StartConversation Target="Conversation_LabPad" ConversationId="Mission3c" />
+      </CompletedActions>
+    </QuizBlock>
+    
+  </QuizBlocks>
+
+  <!-- Scene are the 3D world that you can interact with -->
+  <!--<Scenes CurrentSceneId="HospitalAccident">-->
+  <Scenes>
+    <Scene Id="LabRoom" AssetPath="Scenes/LabRoom">
+      <!-- Scene can have triggers, which will do specific actions when the conditions match -->
+      <Triggers>
+        <!-- For example, this <EventTrigger> will fire when the scene is shown for the 1st time -->
+        <EventTrigger Event="Shown">
+          <Conditions>
+            <DataCondition Property="Visit" Value="1" />
+          </Conditions>
+          <Actions>
+            <!--<Setter Target="Incubator1" Property="IsClickable" Value="false" />
+            <Setter Target="Microscope1" Property="IsClickable" Value="false" />
+            <Setter Target="HypertonicPlaceholder" Property="IsClickable" Value="false" />
+            <Setter Target="HypotonicPlaceholder" Property="IsClickable" Value="false" />
+            <Setter Target="TrashbinFlattop2" Property="IsClickable" Value="false" />
+            <Setter Target="Microscope1Screen" Property="IsClickable" Value="false" />
+        
+            <RunScript ScriptId="WaitBloodCells" />-->
+            <StartConversation Target="Conversation_LabPad" ConversationId="WelcomeToLabster" />
+            <!--<StartConversation Target="Conversation_LabPad" ConversationId="Mission2_Completed"/>-->
+            <RunScript ScriptId="AcidBaseAnimationMessages" />
+          </Actions>
+        </EventTrigger>
+      </Triggers>
+      <!-- Scene, Element, Container, and Placeholder can have surfaces, in which we can declare Elements, Containers, and Placeholders -->
+      <Elements>
+        
+        <Element Id="microscope1" GameObjectId="deco_objects/microscope" IsVisible="false" IsClickable="false" />
+        <Element Id="PCR_LOD11" GameObjectId="deco_objects/PCR_LOD1" IsVisible="false" IsClickable="false" />
+        <Element Id="papers2" GameObjectId="deco_objects/papers2" IsVisible="false" IsClickable="false" />
+        <Element Id="HazardPoster" GameObjectId="deco_objects/Posters/Poster6" IsVisible="false" IsClickable="false" />
+        <Element Id="GloveBoxesStacked" GameObjectId="deco_objects/gloves_boxes_stacked1" IsVisible="false" IsClickable="false" />
+        <Element Id="Papers" GameObjectId="deco_objects/papers3" IsVisible="false" IsClickable="false" />
+        <Element Id="DecoGlasses" GameObjectId="deco_objects/deco_glasses2" IsVisible="false" IsClickable="false" />
+        <Surface GameObjectId="Surface1">
+          <Elements>
+            
+            <Element Id="Table1a" Title="Workbench5" GameObjectId="Table1" SourceId="Table1" Position="0.28,5.14" Tooltip="Workbench 5" Rotation="180" IsClickable="false" IsFocusable="false">
+              
+            </Element>
+            <!--<Element Id="Table1b" GameObjectId="Table1" SourceId="Table1" Position="0.28,5.14" IsClickable="false" Rotation="180"/>-->
+            <Element Id="Table2a" Title="Workbench4" GameObjectId="Table2" SourceId="Table2" Position="3.02,0.13" Tooltip="Workbench 4" IsClickable="false" IsFocusable="false">
+              
+            </Element>
+            <Element Id="Table2b" Title="Workbench1" GameObjectId="Table2" SourceId="Table2" Position="3.02,3.80" Tooltip="Workbench 1" IsFocusable="true">
+              <Triggers>
+                <EventTrigger Event="Click">
+                  <Conditions>
+                    <DataCondition Target="StartAcidBase" Property="Value" Value="1" />
+                  </Conditions>
+                  <Actions>
+                    <Setter Target="StartAcidBase" Property="Value" Value="0" />
+                    <Setter Target="Table2b" Property="IsEmphasized" Value="false" />
+                    <StartConversation ConversationSentence="Wear gloves to protect your hands and prevent contamination" />
+                    <EndConversation Target="EventConversation" />
+                  </Actions>
+                </EventTrigger>
+              </Triggers>              
+              <Elements>
+                <Surface GameObjectId="Main">
+                  <Elements>
+                    <Element Id="GlovesBoxW1" GameObjectId="GlovesBoxW1" SourceId="GlovesBox" Position="-0.3,-0.6" Rotation="166.0706" IsClickable="true" Tooltip="Gloves box">
+                      <Click>
+                        <AnimateHandTo />
+                        <GotoState Target="LeftHand" StateId="Glove" />
+                        <GotoState Target="RightHand" StateId="Glove" />
+                        <AnimateHandTo IsReverse="true" />
+                        <Setter Property="IsClickable" Value="false" />                      
+                        <StartConversation Target="Conversation_LabPad" ConversationId="AcidBase_1" />
+                      </Click>
+                    </Element>
+                    
+                    <Placeholder Id="TrashbinFlattop1" Title="TrashBin" SourceId="TrashbinFlattop" GameObjectId="TrashbinFlattop1" Position="0.3712096,-0.5477884" Rotation="-90" AcceptsItems="Beaker;AgarPlate;TestTube" PlaceholderBehaviour="Trash" Tooltip="Trash bin" ExtendedTooltip="Special trash bins are needed for biological waste. Place used tips and tubes here." />
+                    <Element SourceId="PipetteHolder" GameObjectId="PipetteHolder1" Position="0.5168426,-0.1980784" Rotation="90" IsClickable="false">
+                      <Elements>
+                        <Placeholder Id="PipetteRackW1" Title="PipetteRack" GameObjectId="Placeholder" ItemId="Pipette" AcceptsItems="Pipette" />
+                      </Elements>
+                    </Element>
+                    <Element Id="PipetteTipsRackW1" Title="PipetteTipsPack" SourceId="PCRPipetteTipsRack" GameObjectId="PCRPipetteTipsRack1" Position="0.3898385,-0.154633" Rotation="-90" ItemId="PipetteBox" IsClickable="true" Tooltip="Pipette tips" ExtendedTooltip="These tips go on the pipette. Clean tips are needed at every step risking contamination." />
+
+                    <Placeholder Id="FlaskPlaceholder1" Title="FlaskSlot" ItemId="FlaskStrongAcid" AcceptsItems="Flask" Position="-0.1435194,0.1829729" Rotation="-90" IsClickable="false" />
+                    <Placeholder Id="FlaskPlaceholder2" Title="FlaskSlot" ItemId="FlaskWeakAcid" AcceptsItems="Flask" Position="-0.1435196,0.01988482" Rotation="-90" IsClickable="false" />
+                    <Placeholder Id="FlaskPlaceholder3" Title="FlaskSlot" ItemId="FlaskStrongBase" AcceptsItems="Flask" Position="-0.1435196,-0.1412079" Rotation="-90" IsClickable="false" />
+                    <Placeholder Id="FlaskPlaceholder4" Title="FlaskSlot" ItemId="FlaskWeakBase" AcceptsItems="Flask" Position="-0.1435196,-0.2948692" Rotation="-90" IsClickable="false" />
+                    
+                    <Container Id="Beaker1" Title="Beaker" SourceId="Beaker" GameObjectId="Beaker1" Position="-0.05,-0.5422614" Rotation="-90" AcceptContentsTransfer="false" AcceptContentsPickup="false">
+                      <Triggers>
+                        <EventTrigger Event="Click">
+                          <Conditions>
+                            <DataCondition Target="{Binding Contents.CurrentContentTypes}" Comparison="Contains" Value="Water" />
+                          </Conditions>
+                          <Actions>
+                            <AnimateHandTo />
+                            <CreateItem Target="{Binding RelativeSource=CurrentHand}" ItemId="Beaker" />
+                            <AnimateHandTo IsReverse="true" />
+                          </Actions>
+                          <FailActions>
+                            <AnimateHandTo />
+                            <CreateItem Target="{Binding RelativeSource=CurrentHand}" ItemId="BeakerWeakBase" />
+                            <AnimateHandTo IsReverse="true" />
+                          </FailActions>
+                        </EventTrigger>
+                      </Triggers>
+                      <Contents>
+                        <Content Type="Water" Amount="90" />
+                      </Contents>
+                    </Container>
+
+                    <Element SourceId="CorrosiveSticker" GameObjectId="Corrosive_sticker1" Position="0.5372226,0.4247663" Rotation="-90" IsClickable="false" />
+                    <Container Id="BromothymolBlue" Title="Bottle" SourceId="Bottle500ml" GameObjectId="BromothymolBlue" MaxAmount="10000" Position="-0.253098,0.4333441" Rotation="-90" MaxContentType="1" Tooltip="Bromothymol Blue" ExtendedTooltip="pH indicator" IsVisible="false">
+                      <Triggers>
+                        <EventTrigger Event="Click">
+                          <Conditions>
+                            <DataCondition Target="{Binding CurrentElement, RelativeSource=CurrentHand}" Property="ItemId" Comparison="NotEquals" Value="Pipette" />
+                          </Conditions>
+                          <Actions>
+                            <StartConversation Target="EventConversation" ConversationSentence="You need to use pipette to pick up Bromothymol Blue." />
+                          </Actions>
+                        </EventTrigger>
+                      </Triggers>
+                      <Contents>
+                        <Content Type="BromothymolBlue" Amount="9000" />
+                      </Contents>
+                    </Container>
+                    
+                    <Element Id="Ph_meter1" SourceId="PhMeter" GameObjectId="Ph_meter1" Position="0.2,0.5" Rotation="-90" IsClickable="false">
+                      <Elements>
+                        <Element Id="Controller" Title="PHMeter.Controller" GameObjectId="Controller" IsFocusable="true">
+                          <Click>
+                            <Setter Property="IsEmphasized" Value="false" />
+                            <EndConversation Target="EventConversation" />
+                          </Click>
+                        </Element>
+                        <Placeholder Id="BeakerPlaceholder" Title="PHMeter.BeakerSlot" GameObjectId="Placeholder" AcceptsItems="Beaker" ItemId="Beaker" Tooltip="pH meter screen" ModifyContentAmount="StrongAcid;StrongBase;WeakAcid;WeakBase">
+                          <Triggers>
+                            <Trigger>
+                              <Conditions>
+                                <DataCondition Target="{Binding CurrentElement.ItemId}" Comparison="NotEquals" Value="Beaker" />
+                              </Conditions>
+                              <Actions>
+                                <Setter Target="{Binding EngineRoot.Lookup.PHMeterPH.Value}" Value="7" />
+                                <Setter Target="{Binding EngineRoot.Lookup.AcidOrBaseDisplay.Value}" Value="0" />
+                              </Actions>
+                            </Trigger>
+                            
+                          </Triggers>
+                          <Parameters>
+                            <Parameter Id="PH" Value="7" />
+                          </Parameters>
+                        </Placeholder>
+                      </Elements>
+                      <Screens>
+                        <Screen Id="PhMeterScreen" GameObjectId="Screen" GUIScreenId="GUIPhMeterScreen" />
+                      </Screens>
+                    </Element>
+                    
+                  </Elements>
+                </Surface>
+              </Elements>
+            </Element>
+            <!--<Element Id="Table3a" GameObjectId="Table3" SourceId="Table3" Position="1.27,1.48" IsClickable="false">
+            </Element>-->
+            <!--<Element Id="Table3b" Title="Workbench2" GameObjectId="Table3" SourceId="Table3" Position="1.27,2.45" Tooltip="Workbench 2" IsClickable="false" IsFocusable="true" Rotation="180" />-->
+            <Element Id="Table4a" Title="Workbench3" GameObjectId="Table4" SourceId="Table4" Position="1.986085,1.96" Tooltip="Workbench 3" IsClickable="false" IsFocusable="true" />
+            <!--<Element Id="ShelfLong1" GameObjectId="ShelfLong" SourceId="ShelfLong" Position="1.7897,2.454" IsClickable="false"/>
+            <Element Id="ShelfLong2" GameObjectId="ShelfLong" SourceId="ShelfLong" Position="1.7897,1.538" IsClickable="false" Rotation="180"/>-->
+
+            <Element GameObjectId="C1_LOD0" SourceId="Cabinet" Position="2.667,-1.786" IsClickable="false" />
+            <Element GameObjectId="C1_LOD0" SourceId="Cabinet" Position="1.667,-1.786" IsClickable="false" />
+            <Element GameObjectId="C1_LOD0" SourceId="Cabinet" Position="0.667,-1.786" IsClickable="false" />
+            <Element GameObjectId="C1_LOD0" SourceId="Cabinet" Position="-0.333,-1.786" IsClickable="false" />
+            <Element GameObjectId="C1_LOD0" SourceId="Cabinet" Position="-1.333,-1.786" IsClickable="false" />
+
+            <Element GameObjectId="C1_LOD0" SourceId="Cabinet" Position="3.875,0.258" Rotation="-90" IsClickable="false" />
+            <Element GameObjectId="C1_LOD0" SourceId="Cabinet" Position="3.875,1.261" Rotation="-90" IsClickable="false" />
+
+            <Element GameObjectId="C1_LOD0" SourceId="Cabinet" Position="3.875,3.885" Rotation="-90" IsClickable="false" />
+            <Element GameObjectId="C1_LOD0" SourceId="Cabinet" Position="3.875,4.888" Rotation="-90" IsClickable="false" />
+
+            <Element GameObjectId="ShelfLabCoat" SourceId="ShelfLabCoat" Position="1.50271,-0.696482" Rotation="0" IsClickable="false" />
+            <Element GameObjectId="TrashBinBig" SourceId="TrashBinBig" Position="1.519882,2.72" IsClickable="false" />
+          </Elements>
+        </Surface>
+        <Element GameObjectId="poster2" IsVisible="false" />
+        <Element GameObjectId="poster5" IsVisible="false" />
+      </Elements>
+    </Scene>
+    
+  </Scenes>
+</Engine>
