@@ -7,6 +7,7 @@
   <!-- Player node only used to define quiz points -->
   <!-- This is also pretty neet -->
   <!-- This is also pretty neet -->
+  <!-- This is also pretty neet fe-->
 
   <Player DefaultQuizMaxPoint="10" DefaultQuizMinPoint="2" DefaultQuizPointReduction="2" LabPadItemId="LabPad" />
 
