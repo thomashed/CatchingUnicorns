@@ -95,7 +95,7 @@
         <SetVariable Variable="pH" Expression="14+Log10([Cb])" />
 
         <SetVariable Variable="pHInc" Expression="Min((CurrentPH+0.5), [pH])" />
-
+        <!-- 3d assets missing -->
         <Setter Target="{Binding Contents}" Property="PH" Value="[pH]" />
         <Setter Target="{Binding EngineRoot.Lookup.PHMeterPH.Value}" Value="[pH]">
           <Conditions>
