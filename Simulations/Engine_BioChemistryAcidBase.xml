@@ -16,6 +16,7 @@
   <Player DefaultQuizMaxPoint="10" DefaultQuizMinPoint="2" DefaultQuizPointReduction="2" LabPadItemId="LabPad" />
 
   <!-- New comment -->
+  <!-- One more new comment-->
 
   <Simulations>
     <Simulation Id="PHColorSimulation" Interval="1">
