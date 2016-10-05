@@ -90,7 +90,7 @@
         <SetVariable Variable="BaseAmount" Expression="{Binding Contents.StrongBase.Amount}" />
 				<SetVariable Variable="WaterAmount" Expression="{Binding Contents.Water.Amount}" />
         <SetVariable Variable="CurrentPH" Expression="{Binding Contents.PH}" />
-
+<!-- many more comments -->
         <SetVariable Variable="Cb" Expression="[conc]*[BaseAmount]/([BaseAmount]+[WaterAmount])" />
         <SetVariable Variable="M" Expression="Round([Cb]*1000,3)" />
         <SetVariable Variable="pH" Expression="14+Log10([Cb])" />
