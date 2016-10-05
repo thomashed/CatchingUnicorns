@@ -98,6 +98,7 @@
         <SetVariable Variable="pHInc" Expression="Min((CurrentPH+0.5), [pH])" />
         <!-- 3d assets missing -->
         <!-- 3d assets still missing -->
+        <!-- 3d has not been found yet -->
         <Setter Target="{Binding Contents}" Property="PH" Value="[pH]" />
         <Setter Target="{Binding EngineRoot.Lookup.PHMeterPH.Value}" Value="[pH]">
           <Conditions>
