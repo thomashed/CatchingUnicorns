@@ -77,6 +77,8 @@
 			</Actions>
 		</Simulation>
 
+    <!-- pretty cool comments-->
+
 		<Simulation Id="StrongBaseSimulation" Interval="1">
 			<Conditions>
         <DataCondition Target="{Binding Contents.Water}" Property="Amount" Comparison="GreaterThan" Value="0" />
